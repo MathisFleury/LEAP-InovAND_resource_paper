@@ -1,18 +1,61 @@
-# Outputs (optional - remove if you want to version control outputs)
-# 1_clustering/outputs/
+# =========================================================================
+# Data and outputs (code only is versioned)
+# =========================================================================
+
+# All output / result directories (figures, tables, intermediate artifacts)
+outputs/
+outputs_*/
+Rplots.pdf
+**/Rplots.pdf
 
 # Individual-level data (CSV/TSV with participant IDs)
 *individuals*
 *cluster_assignments*
 **/individuals_metrics*
 
+# Atlas / resource data shipped alongside _resources/
+_resources/custom_subcortical_atlas_4S156/
+
+# =========================================================================
+# Data file types (anywhere in the tree)
+# =========================================================================
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.nii
+*.nii.gz
+*.mgz
+*.gii
+*.label
+*.vtk
+*.bgz
+
+# =========================================================================
+# Claude / agent assistants
+# =========================================================================
+.claude/
+CLAUDE.md
+
+# =========================================================================
 # R
+# =========================================================================
 .Rhistory
 .RData
 .Rproj.user
 *.Rproj
 
+# =========================================================================
 # Python
+# =========================================================================
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -20,12 +63,21 @@ __pycache__/
 venv/
 env/
 
+# =========================================================================
 # IDE
+# =========================================================================
 .idea/
 .vscode/
 *.swp
 *.swo
 
+# =========================================================================
+# Legacy scripts (to be removed)
+# =========================================================================
+script_zakaria/
+
+# =========================================================================
 # OS
+# =========================================================================
 .DS_Store
 Thumbs.db

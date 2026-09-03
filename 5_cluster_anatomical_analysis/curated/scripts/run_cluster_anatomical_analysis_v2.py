@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cluster Anatomical MRI Analysis Pipeline — REVISION (v2)
+Cluster Anatomical MRI Analysis Pipeline — curated (v2)
 
 Runs the v2 per-cluster anatomical pipeline rebuilt on the QC + ComBat +
 age/sex/eTIV-regressed FreeSurfer table, with LEAP_W1 / INOVAND_T1 wave
@@ -11,6 +11,9 @@ Steps:
      NT + pairwise cluster comparisons (t / Cohen's d / FDR).
   2. Cortical brain maps — ggseg (R), fill = Cohen's d, FDR outlines.
   3. Subcortical brain map — yabplot, Cohen's d.
+  4. Figure 6a composite grid (ggseg t-stat maps, 3 modalities x 3 clusters).
+  5. Global structural measures by cluster (violin: thickness/eTIV/area).
+  6. Publication gt tables (per-cluster MRI stats).
 """
 
 import argparse
@@ -52,7 +55,7 @@ def run_script(script_path: Path, description: str) -> bool:
 
 
 def main() -> bool:
-    print("Cluster Anatomical MRI Analysis Pipeline — REVISION (v2)")
+    print("Cluster Anatomical MRI Analysis Pipeline — curated (v2)")
     print("=" * 60)
 
     steps = [

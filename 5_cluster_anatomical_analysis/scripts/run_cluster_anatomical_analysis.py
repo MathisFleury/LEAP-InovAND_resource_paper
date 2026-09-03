@@ -4,7 +4,9 @@ Cluster Anatomical Analysis Pipeline
 
 Runs the complete cluster-based structural MRI analysis:
   1. Generate cluster MRI input CSVs (t-statistics, Cohen's d)
-  2. Brain visualizations using R (ggseg)
+  2. Cortical brain visualizations using R (ggseg)
+  3. Subcortical brain visualization (yabplot)
+  4. Combined single-page brain figure (per cluster, FDR)
 """
 
 import argparse
@@ -94,6 +96,18 @@ def main():
         (
             _SCRIPT_DIR / '02_plot_cluster_mri_brain.R',
             'MRI Cluster Brain Visualizations',
+            False,
+            None,
+        ),
+        (
+            _SCRIPT_DIR / '03_plot_subcortical_cluster_yabplot.py',
+            'Subcortical Cluster Yabplot',
+            False,
+            '/usr/local/bin/python3.11',
+        ),
+        (
+            _SCRIPT_DIR / '04_combined_cluster_brain_figure.R',
+            'Combined single-page cluster brain figure (per cluster, FDR)',
             False,
             None,
         ),

@@ -33,11 +33,11 @@ NBS_SUBDIR=nbs_wholegroup_nogsr_concat VARIANTS=nogsr_concat Rscript 09_nbs_brai
 VARIANTS=nogsr_concat Rscript 11_nbs_combined_figure.R
 
 echo ""
-echo "=== QC (12-14): motion confound, sequence/ComBat SVM, FD x connectivity ==="
+echo "=== QC (12-15): motion confound, sequence/ComBat SVM, FD x connectivity, network proportions ==="
 $PY 12_motion_confound_check.py
 $PY 13_sequence_combat_svm.py
 $PY 14_fd_connectivity_all_edges.py
-$PY 14_nbs_network_proportions.py
+$PY 15_nbs_network_proportions.py
 
 echo ""
 echo "=== Done. Outputs in 6-2_functional_analysis/outputs/nogsr_concat/ ==="

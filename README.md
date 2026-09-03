@@ -14,7 +14,6 @@ run against the appropriate data directory.
 2_genetic_analysis/          # Rare-variant carrier annotation & ORs (population)
 3_cluster_genetic_analysis/  # Rare-variant ORs and PGS by cluster
 4_anatomical_analysis/       # Structural MRI: autism vs TD, IQ/SRS, LOEUF
-4-1_anatomical_analysis/     # Anatomical analysis (demo-only QC variant)
 5_cluster_anatomical_analysis/  # Structural MRI by cluster
 6_functional_analysis/       # fMRI connectivity: autism vs TD (Schaefer + subcortical)
 7_cluster_functional_analysis/  # fMRI connectivity by cluster
@@ -131,9 +130,7 @@ yabplot).
 cd 4_anatomical_analysis && ./run_all.sh
 ```
 
-`4-1_anatomical_analysis/` is a parallel pipeline using the
-`freesurfer_zscore_demo_only.tsv` QC variant (z-scored, demo-only). A
-revision pipeline (`4_anatomical_analysis/revision/`) adds per-population
+A revision pipeline (`4_anatomical_analysis/revision/`) adds per-population
 Euler-number checks and hg38 LOEUF maps.
 
 ## 5. Cluster anatomical MRI

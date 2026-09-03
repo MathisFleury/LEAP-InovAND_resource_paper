@@ -40,7 +40,9 @@ DATA_PATH = os.environ.get(
     os.path.join(_script_dir, "..", "..", "..", "imaging2genet", "0_input", "dataframes"),
 )
 INDIVIDUALS_METRICS = os.path.join(DATA_PATH, "individuals_metrics.tsv")
-OUTPUT_BASE = os.path.normpath(os.path.join(_script_dir, "..", "outputs"))
+# Self-contained under legacy/1_clustering/ (moved here; script sits directly
+# in this dir now, not in a nested scripts/ subfolder, so no ".." needed).
+OUTPUT_BASE = os.path.normpath(os.path.join(_script_dir, "outputs"))
 FIGURES_DIR = os.path.join(OUTPUT_BASE, "figures")
 TABLES_DIR = os.path.join(OUTPUT_BASE, "tables")
 os.makedirs(FIGURES_DIR, exist_ok=True)

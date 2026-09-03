@@ -8,14 +8,32 @@
 # =============================================================================
 
 # --- Configuration ---
+# Run:  Rscript 01_pca_features.R [curated]
+#   curated -> read outputs/curated/tables/individuals_metrics_with_clusters_curated.csv
+#              (written by 04_run_clustering_curated.py) and write *_curated
+#              outputs to outputs/curated/; frozen run (no arg) is unaffected.
+if ("curated" %in% commandArgs(trailingOnly = TRUE)) {
+  curated_csv <- file.path("..", "outputs", "curated", "tables",
+                           "individuals_metrics_with_clusters_curated.csv")
+  if (!file.exists(curated_csv)) {
+    stop("Curated features not found: ", curated_csv, "\nRun 04_run_clustering_curated.py first.")
+  }
+  Sys.setenv(PCA_INPUT_CSV = normalizePath(curated_csv), PCA_OUTPUT_SUBDIR = "curated")
+}
+
 # Set LEAP_INOVAND_DATA to data directory, or adjust path below
 # Data path: set LEAP_INOVAND_DATA or use default (sibling imaging2genet repo)
 DATA_PATH <- Sys.getenv("LEAP_INOVAND_DATA", unset = NA)
 if (is.na(DATA_PATH) || DATA_PATH == "") {
   DATA_PATH <- file.path(getwd(), "..", "..", "..", "imaging2genet", "0_input", "dataframes")
 }
-INDIVIDUALS_METRICS <- file.path(DATA_PATH, "individuals_metrics.tsv")
-OUTPUT_BASE <- normalizePath(file.path(getwd(), "..", "outputs"), mustWork = FALSE)
+INDIVIDUALS_METRICS <- Sys.getenv("PCA_INPUT_CSV", unset = file.path(DATA_PATH, "individuals_metrics.tsv"))
+OUTPUT_SUBDIR <- Sys.getenv("PCA_OUTPUT_SUBDIR", unset = "")
+OUTPUT_BASE <- if (nzchar(OUTPUT_SUBDIR)) {
+  normalizePath(file.path(getwd(), "..", "outputs", OUTPUT_SUBDIR), mustWork = FALSE)
+} else {
+  normalizePath(file.path(getwd(), "..", "outputs"), mustWork = FALSE)
+}
 FIGURES_DIR <- file.path(OUTPUT_BASE, "figures")
 TABLES_DIR <- file.path(OUTPUT_BASE, "tables")
 dir.create(FIGURES_DIR, recursive = TRUE, showWarnings = FALSE)
@@ -29,10 +47,15 @@ library(corrplot)
 
 # --- Data preparation ---
 cat("Loading data from:", INDIVIDUALS_METRICS, "\n")
-df <- readr::read_tsv(INDIVIDUALS_METRICS)
+df <- if (grepl("\\.csv$", INDIVIDUALS_METRICS)) {
+  readr::read_csv(INDIVIDUALS_METRICS, show_col_types = FALSE)
+} else {
+  readr::read_tsv(INDIVIDUALS_METRICS)
+}
 df <- df[!duplicated(df$ID), ]
 df[df == 999] <- NA
-df <- df[df$Relation_to_proposant == "participant", ]
+relation_col <- if ("relation_to_proposant" %in% colnames(df)) "relation_to_proposant" else "Relation_to_proposant"
+df <- df[df[[relation_col]] == "participant", ]
 df$total_IQ <- ifelse(is.na(df$total_IQ), df$performance_IQ, df$total_IQ)
 
 # Broad set of clinical measures (paper: IQ subscales, SRS-2, Vineland, RBS-R, SSP)
@@ -71,12 +94,17 @@ cat("Dim1:", round(eig.val[1, 2], 1), "%, Dim2:", round(eig.val[2, 2], 1), "%\n\
 
 # --- Figures ---
 # Scree plot
-fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 60))
-ggsave(file.path(FIGURES_DIR, "PCA_variance.pdf"), width = 10, height = 10)
+p_scree <- fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 60))
+ggsave(file.path(FIGURES_DIR, "PCA_variance.pdf"), plot = p_scree, width = 10, height = 10)
 
 # Variable loadings (contributions)
-fviz_pca_var(res.pca, col.var = "black")
-ggsave(file.path(FIGURES_DIR, "PCA_loadings.pdf"), width = 10, height = 10)
+p_loadings <- fviz_pca_var(res.pca, col.var = "black")
+ggsave(file.path(FIGURES_DIR, "PCA_loadings.pdf"), plot = p_loadings, width = 10, height = 10)
+
+# Combined scree + biplot, panel-labelled (a/b) — for Supplementary Fig. 25
+library(patchwork)
+combined <- (p_scree | p_loadings) + plot_annotation(tag_levels = "a")
+ggsave(file.path(FIGURES_DIR, "PCA_scree_and_biplot.pdf"), plot = combined, width = 14, height = 7)
 
 # Cos2 correlation plot
 var <- get_pca_var(res.pca)
@@ -117,7 +145,7 @@ pca_summary <- pca_summary[order(abs(pca_summary$Loading_PC1), decreasing = TRUE
 write.csv(pca_summary, file.path(TABLES_DIR, "PCA_variable_importance.csv"), row.names = FALSE)
 cat("\nTable saved: PCA_variable_importance.csv\n")
 
-# --- Sample sizes by variable combination (Supplementary Table 12) ---
+# --- Sample sizes by variable combination (Supplementary Table 9) ---
 df_orig <- df
 combinations <- list(
   "All clinical variables" = clinical_columns,
@@ -132,13 +160,19 @@ sample_sizes <- data.frame(
   Sample_Size = integer(),
   stringsAsFactors = FALSE
 )
+POOL_N <- nrow(df_orig)  # denominator for Percent_of_Pool: full participant
+                          # pool (deduped, participants only), before the
+                          # per-combination completeness filter below.
 for (i in seq_along(combinations)) {
   vars <- combinations[[i]][combinations[[i]] %in% colnames(df_orig)]
   if (length(vars) > 0) {
     n_complete <- sum(complete.cases(df_orig[, vars, drop = FALSE]))
     sample_sizes <- rbind(sample_sizes, data.frame(
       Variable_Combination = names(combinations)[i],
+      N_Variables = length(vars),
       Sample_Size = n_complete,
+      Percent_of_Pool = round(100 * n_complete / POOL_N, 1),
+      Pool_N = POOL_N,
       stringsAsFactors = FALSE
     ))
     cat(sprintf("%s: n = %d\n", names(combinations)[i], n_complete))

@@ -18,7 +18,7 @@ if (is.na(DATA_PATH) || DATA_PATH == "") {
   DATA_PATH <- file.path(getwd(), "..", "..", "..", "imaging2genet", "0_input", "dataframes")
 }
 INDIVIDUALS_METRICS <- file.path(DATA_PATH, "individuals_metrics.tsv")
-OUTPUT_BASE <- normalizePath(file.path(getwd(), "..", "outputs"), mustWork = FALSE)
+OUTPUT_BASE <- normalizePath(file.path(getwd(), "outputs"), mustWork = FALSE)
 FIGURES_DIR <- file.path(OUTPUT_BASE, "figures")
 TABLES_DIR <- file.path(OUTPUT_BASE, "tables")
 dir.create(FIGURES_DIR, recursive = TRUE, showWarnings = FALSE)

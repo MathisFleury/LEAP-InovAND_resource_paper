@@ -21,8 +21,13 @@ from matplotlib.colors import LinearSegmentedColormap, to_rgb
 import seaborn as sns
 
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-TABLES_DIR = os.path.normpath(os.path.join(_script_dir, "..", "outputs", "tables"))
-FIGURES_DIR = os.path.normpath(os.path.join(_script_dir, "..", "outputs", "figures"))
+# Moved to legacy/1_clustering/: TABLES_DIR still points at the real
+# 1_clustering/outputs/tables/ (04_run_clustering.py's shared output --
+# a genuine read dependency, not just historical co-location). FIGURES_DIR
+# is self-contained here since nothing else reads this script's output.
+_ORIG_SECTION = os.path.normpath(os.path.join(_script_dir, "..", "..", "1_clustering"))
+TABLES_DIR = os.path.join(_ORIG_SECTION, "outputs", "tables")
+FIGURES_DIR = os.path.normpath(os.path.join(_script_dir, "outputs", "figures"))
 
 method = sys.argv[1] if len(sys.argv) > 1 else "kmeans"
 suffix = "" if method == "kmeans" else f"_{method}"

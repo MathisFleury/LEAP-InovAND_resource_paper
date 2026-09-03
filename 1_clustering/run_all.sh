@@ -13,11 +13,11 @@ echo "--- 4. Run clustering (k=3), curated cohort ---"
 python3.11 04_run_clustering_curated.py
 
 echo "--- 1. PCA on clinical features, curated cohort ---"
-Rscript 01_pca_features_curated.R
+Rscript 01_pca_features.R curated
 Rscript 01b_sample_size_table.R curated
 
 echo "--- 5. Cluster stability, curated cohort (k-means/Ward/GMM) ---"
-python3.11 05_cluster_stability_curated.py
+python3.11 05_cluster_stability.py curated
 python3.11 05b_stability_figure_merged.py
 
 echo "--- 6. Method comparison (k-means vs Ward vs GMM), curated ---"
@@ -34,11 +34,14 @@ python3.11 10_cluster_scatter_panels.py
 echo ""
 echo "=== FROZEN / paper-reproduction regime (optional -- reproduces the"
 echo "    original submission's figures; not the default for new work) ==="
+echo "    Only the genuinely shared scripts run here (curated mode sources/"
+echo "    subprocess-calls these same files). Pure frozen-only leaf scripts"
+echo "    (feature selection rationale, cluster validation, heatmap, concept"
+echo "    map, reval k-selection) moved to ../legacy/1_clustering/ -- run"
+echo "    that folder's own run_all.sh separately if you need them."
 
-echo "--- 1-3. PCA, feature selection, cluster validation (frozen) ---"
+echo "--- 1. PCA (frozen) ---"
 Rscript 01_pca_features.R
-Rscript 02_feature_selection_rationale.R
-Rscript 03_cluster_validation.R
 
 echo "--- 4. Run clustering (k=3), frozen cohort ---"
 python3.11 04_run_clustering.py
@@ -48,16 +51,6 @@ python3.11 05_cluster_stability.py
 
 echo "--- 6. Method comparison, frozen cohort ---"
 python3.11 06_method_comparison.py
-
-echo "--- 8-9. Cluster heatmap (Figure 4a style) + concept map ---"
-python3.11 08_cluster_heatmap.py
-python3.11 09_cluster_jointplot.py
-
-echo "--- 12 (reval). k-selection stability-based validation ---"
-echo "    NOTE: reads the DEPRECATED frozen individuals_metrics.tsv directly"
-echo "    (see root CLAUDE.md) -- kept as a historical robustness check, not"
-echo "    migrated to curated data. Flag for removal if no longer needed."
-python3.11 12_reval_kselection.py
 
 echo ""
 echo "=== Done. Outputs in 1_clustering/outputs/ (curated/ subdir + root) ==="

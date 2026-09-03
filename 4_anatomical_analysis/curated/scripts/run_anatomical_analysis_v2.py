@@ -52,14 +52,20 @@ def main() -> bool:
          "Autism vs NT — t / Cohen's d / FDR", True),
         (_SCRIPT_DIR / "02_plot_anatomical_mri_brain_v2.R",
          "Cortical brain maps (ggseg, Cohen's d)", False),
+        (_SCRIPT_DIR / "07_combined_brain_figure_v2.R",
+         "Combined single-page brain figure (4 features, FDR, ROI labels)", False),
         (_SCRIPT_DIR / "03_plot_subcortical_yabplot_v2.py",
          "Subcortical brain map (yabplot, Cohen's d)", False),
         (_SCRIPT_DIR / "04_euler_by_population.py",
          "Euler number by population (QC summary)", False),
         (_SCRIPT_DIR / "05_loeuf_mri_correlations_hg38_v2.py",
-         "LOEUF (hg38) × MRI Pearson correlations (per-panel FDR)", False),
+         "LOEUF (v4) × MRI Pearson correlations (per pathway×feature FDR)", False),
         (_SCRIPT_DIR / "06_loeuf_mri_brain_maps_hg38_v2.R",
-         "LOEUF (hg38) brain maps (cortical + subcortical, p<0.01)", False),
+         "LOEUF (v4) correlation brain maps (per-pathway combined figure)", False),
+        (_SCRIPT_DIR / "08_loeuf_mri_regression_permutation_v2.py",
+         "LOEUF (v4) × MRI OLS β + permutation (gene-list-specific null)", False),
+        (_SCRIPT_DIR / "09_loeuf_combined_brain_figure_v2.R",
+         "LOEUF (v4) regression β brain maps (per-pathway, perm p<0.05)", False),
     ]
 
     results = {}

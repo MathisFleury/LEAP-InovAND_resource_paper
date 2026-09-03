@@ -55,13 +55,20 @@ def _load_inovand() -> pd.DataFrame:
 
 
 def load_dataframe() -> pd.DataFrame:
-    """Load LEAP + INOVAND subject tables, concatenate, drop NaN ages."""
+    """Load LEAP + INOVAND subject tables, concatenate, drop NaN ages, then
+    attach the curated clinical diagnosis (replaces reliance on the old
+    `control_status` column)."""
     df_leap    = _load_leap()
     df_inovand = _load_inovand()
     df = pd.concat([df_leap, df_inovand], ignore_index=True, sort=False)
     n0 = len(df)
     df = df.dropna(subset=[AGE_COL]).copy()
     print(f"[01] concat  →  {len(df):,} rows  (dropped {n0 - len(df):,} with NaN {AGE_COL})")
+
+    # Curated clinical merge (PopulationS1_curated + clinical_matched). Same
+    # canonical-key approach as 4_anatomical_analysis/curated.
+    from clinical_merge import merge_curated_clinical
+    df = merge_curated_clinical(df)
     return df
 
 

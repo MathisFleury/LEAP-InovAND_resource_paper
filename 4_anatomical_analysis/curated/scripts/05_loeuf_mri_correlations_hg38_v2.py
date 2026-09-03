@@ -3,13 +3,13 @@
 LOEUF (hg38) × MRI correlation statistics — REVISION
 
 Produces the stats CSV consumed by 06_loeuf_mri_brain_maps_hg38_v2.R.
-Mirrors the hg38 path of ../../4-1_anatomical_analysis/scripts/11_loeuf_mri_interaction.py
-but uses the revision MRI table (QC + ComBat + age/sex/eTIV-regression z-scored)
-and the revision loader/wave-selection logic from 01_anatomical_mri_autism_nt_v2.py.
+Mirrors the hg38 path of ../../4_anatomical_analysis/scripts/11_loeuf_mri_interaction.py
+but uses the curated MRI table (QC + ComBat + age/sex/eTIV-regression z-scored)
+and the curated-pipeline loader/wave-selection logic from 01_anatomical_mri_autism_nt_v2.py.
 
-Input MRI : freesurfer_zscore_qc12_combat_regress.tsv
-Input gen : 2_genetic_analysis/outputs/tables_hg38/carrier_annotations_hg38.tsv
-Joining   : revision MRI → df_clusters_complete (canonical join keys) →
+Input MRI : the curated MRI table (resolved from 01_anatomical_mri_autism_nt_v2)
+Input gen : df_carrier_genelist_DEL_LOF_MISS_withalphamissense_LOEUF_gnomadv4.tsv
+Joining   : curated MRI → df_clusters_complete (canonical join keys) →
             ID → merge on carrier_annotations_hg38.tsv
 
 Output:
@@ -29,20 +29,18 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from importlib import import_module
 _mod01 = import_module("01_anatomical_mri_autism_nt_v2")  # noqa: E402
+import _config  # noqa: E402  shared paths + hyperparameters (see _config.py)
 
 # =============================================================================
-# PATHS
+# PATHS / PARAMS (centralised in _config.py)
 # =============================================================================
 _SCRIPT_DIR  = Path(__file__).resolve().parent
-_SECTION_DIR = _SCRIPT_DIR.parent                      # 4_anatomical_analysis/revision
-_LIB_DIR     = _SECTION_DIR.parent.parent              # LEAP-InovAND_resource
+_SECTION_DIR = _SCRIPT_DIR.parent                      # 4_anatomical_analysis/curated
 
-CARRIER_HG38 = (
-    _LIB_DIR / "2_genetic_analysis" / "outputs" / "tables_hg38"
-    / "carrier_annotations_hg38.tsv"
-)
-
-TABLES_DIR = _SECTION_DIR / "outputs" / "tables_genetics_hg38"
+CARRIER_HG38   = Path(_config.CARRIER_V4)       # gnomAD v4 carrier table
+GENETIC_ROSTER = Path(_config.GENETIC_ROSTER)   # genetics<->MRI bridge (paper IDs)
+TABLES_DIR     = Path(_config.OUTPUT_BASE) / "tables_genetics_hg38"
+AUTISM_ONLY    = _config.AUTISM_ONLY            # restrict to autistic carriers
 
 # =============================================================================
 # Gene lists — all-carriers only.
@@ -61,11 +59,12 @@ GENE_LISTS_HG38_ALL = [
 SUBCORTICAL_COLS = list(_mod01.ASEG_REGIONS)
 
 # (new_col, lof_col, del_col) — min ignoring NaN
+# v4 column names: lof/del per-gene-list LOEUF best scores.
 COMBINE_HG38 = [
     ("dellof_syngo_best_score_hg38",
-     "lof_syngo_best_score",                "del_syngo_genes_best_score"),
+     "lof_syngo_genes_best_score",          "del_syngo_genes_best_score"),
     ("dellof_chromepitf_best_score_hg38",
-     "lof_chromepitf_best_score",           "del_chromepitf_genes_best_score"),
+     "lof_chromepitf_genes_best_score",     "del_chromepitf_genes_best_score"),
 ]
 
 
@@ -74,10 +73,10 @@ def neg_log10(series: pd.Series) -> pd.Series:
     return -np.log10(s[s > 0])
 
 
-def load_revision_mri_with_canonical_id() -> pd.DataFrame:
-    """Run the revision wave-selection pipeline and attach canonical ID
+def load_curated_mri_with_canonical_id() -> pd.DataFrame:
+    """Run the curated-pipeline wave-selection pipeline and attach canonical ID
     (the one used in df_clusters_complete and carrier_annotations_hg38)."""
-    print(f"Loading revision MRI: {_mod01.MRI_FILE}")
+    print(f"Loading curated MRI: {_mod01.MRI_FILE}")
     df = pd.read_csv(_mod01.MRI_FILE, sep="\t", low_memory=False)
     df["ID"] = df["ID"].astype(str)
     df = _mod01._rename_freesurfer_cols(df)
@@ -86,15 +85,20 @@ def load_revision_mri_with_canonical_id() -> pd.DataFrame:
     df["_join_key"] = df.apply(_mod01._canonical_join_key_mri, axis=1)
     df = df.dropna(subset=["_join_key"])
 
-    clu = pd.read_csv(_mod01.DF_CLUSTERS_FILE, low_memory=False)
+    # Bridge through the genetic-aligned roster (IDs match the v4 carrier file),
+    # NOT the curated clinical roster — see GENETIC_ROSTER note above.
+    clu = pd.read_csv(GENETIC_ROSTER, low_memory=False)
     clu["_join_key"] = clu.apply(_mod01._canonical_join_key_clusters, axis=1)
-    clu = clu[["ID", "_join_key", "cohort", "PopulationS1"]].dropna(subset=["_join_key"])
+    pheno = "population_group" if "population_group" in clu.columns else "PopulationS1"
+    clu = (clu[["ID", "_join_key", "cohort", pheno]]
+           .rename(columns={pheno: "PopulationS1"})
+           .dropna(subset=["_join_key"]))
     clu["ID"] = clu["ID"].astype(str)
 
     df = df.drop(columns=[c for c in ["ID"] if c in df.columns])
     merged = clu.merge(df, on="_join_key", how="inner", suffixes=("", "_mri"))
 
-    print(f"  revision MRI ready: {len(merged)} rows (canonical ID attached)")
+    print(f"  curated MRI ready: {len(merged)} rows (canonical ID attached)")
     return merged
 
 
@@ -102,22 +106,34 @@ def load_carriers_hg38() -> pd.DataFrame:
     print(f"Loading carriers (hg38): {CARRIER_HG38}")
     g = pd.read_table(CARRIER_HG38, low_memory=False)
     g["ID"] = g["ID"].astype(str)
-    for col in ("PopulationS1", "Population1", "Population_undiagnosed1"):
-        if col in g.columns:
-            g[col] = g[col].astype(str).str.replace("ID", "IDD").str.replace("TD", "NT")
+    # v4 already uses IDD/NT spelling (CLAUDE.md) — no relabel. Prefer the
+    # `population_group` grouping when present, for consistency with the curated
+    # MRI labels. (LOEUF correlations pool all carriers, so this does not change
+    # the result — it only keeps the label convention consistent.)
+    if "population_group" in g.columns:
+        g["PopulationS1"] = g["population_group"]
     g = g[g["PopulationS1"] != "other"].drop_duplicates("ID")
     print(f"  carriers: {len(g)} rows")
     return g
 
 
 def build_dataset() -> tuple[pd.DataFrame, list[str]]:
-    mri  = load_revision_mri_with_canonical_id()
+    mri  = load_curated_mri_with_canonical_id()
     gens = load_carriers_hg38()
 
-    # Drop duplicated metadata columns from the genetics side; keep `ID` as the join key.
-    drop_dup = [c for c in ("cohort", "PopulationS1") if c in gens.columns]
-    df = gens.drop(columns=drop_dup, errors="ignore").merge(mri, on="ID", how="inner")
+    # Keep the v4 (genetics) PopulationS1 — it already folds the autism subtypes
+    # (with/without IDD, "to exclude") into "Autism". Drop the MRI-side copies to
+    # avoid a clash on merge.
+    mri = mri.drop(columns=[c for c in ("cohort", "PopulationS1") if c in mri.columns])
+    df = gens.merge(mri, on="ID", how="inner")
     print(f"  merged: {len(df)} individuals")
+
+    # Restrict to autistic carriers only (see AUTISM_ONLY).
+    if AUTISM_ONLY:
+        before = len(df)
+        df = df[df["PopulationS1"] == "Autism"].copy()
+        print(f"  AUTISM-ONLY filter: {before} -> {len(df)} autistic individuals")
+
 
     # Combine lof + del → dellof (min ignoring NaN), same as script 11.
     for new_col, lof_col, del_col in COMBINE_HG38:
@@ -126,7 +142,8 @@ def build_dataset() -> tuple[pd.DataFrame, list[str]]:
         df[new_col] = np.fmin(lof_s.values, del_s.values)
 
     ct_cols = [c for c in df.columns
-               if (c.endswith("_thickness") or c.endswith("_area"))
+               if (c.endswith("_thickness") or c.endswith("_area")
+                   or c.endswith("_grayvol"))
                and (c.startswith("lh_") or c.startswith("rh_"))
                and "MeanThickness" not in c and "WhiteSurfArea" not in c]
     sc_cols = [c for c in SUBCORTICAL_COLS if c in df.columns]
@@ -154,7 +171,7 @@ def run_correlations(df: pd.DataFrame, gene_lists, ct_cols, sc_cols, label: str)
             xz = scipy_stats.zscore(x_full.loc[common].values)
             yz = scipy_stats.zscore(mri.loc[common].values)
             r, p = pearsonr(xz, yz)
-            m = re.match(r"^(lh|rh)_(.+)_(thickness|area)$", mri_col)
+            m = re.match(r"^(lh|rh)_(.+)_(thickness|area|grayvol)$", mri_col)
             if m:
                 hemi     = "left" if m.group(1) == "lh" else "right"
                 region   = m.group(2)
@@ -204,15 +221,32 @@ def run_correlations(df: pd.DataFrame, gene_lists, ct_cols, sc_cols, label: str)
     return df_s
 
 
+# Short pathway tokens for the per-file names (genetic_feature -> token).
+PATHWAY_SHORT = {
+    "dellof_syngo_best_score_hg38":      "syngo",
+    "dellof_chromepitf_best_score_hg38": "chromepitf",
+}
+
+
 def main() -> None:
     TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
     df, ct_cols, sc_cols = build_dataset()
     stats = run_correlations(df, GENE_LISTS_HG38_ALL, ct_cols, sc_cols, "hg38 all carriers")
+    if stats.empty:
+        print("No stats produced — nothing written.")
+        return
 
-    out = TABLES_DIR / "loeuf_mri_interaction_statistics_hg38.csv"
-    stats.to_csv(out, index=False)
-    print(f"\nWrote {out}  ({len(stats)} rows)")
+    # One r-input file per pathway × MRI feature. run_correlations already
+    # computes FDR within each (genetic_feature, mri_type) group, so each file
+    # carries its own independent FDR correction over its ROIs only.
+    print("\nWriting per-pathway × per-feature r-input files:")
+    for (feat, mtype), sub in stats.groupby(["genetic_feature", "mri_type"]):
+        short = PATHWAY_SHORT.get(feat, feat)
+        out = TABLES_DIR / f"loeuf_mri_{short}_{mtype}.csv"
+        sub.to_csv(out, index=False)
+        n_sig = int((sub["p_fdr"] < 0.05).sum())
+        print(f"  {out.name}: {len(sub)} ROIs · FDR<0.05 {n_sig}")
 
 
 if __name__ == "__main__":

@@ -60,6 +60,8 @@ def main() -> bool:
          "Per-cluster MRI inputs — Cohen's d / FDR", True),
         (_SCRIPT_DIR / "02_plot_cluster_mri_brain_v2.R",
          "Cortical brain maps (ggseg, Cohen's d)", False),
+        (_SCRIPT_DIR / "04_combined_cluster_brain_figure_v2.R",
+         "Combined single-page cluster brain figure (per cluster, FDR)", False),
         (_SCRIPT_DIR / "03_plot_subcortical_cluster_yabplot_v2.py",
          "Subcortical brain map (yabplot, Cohen's d)", False),
     ]

@@ -8,7 +8,7 @@ QC + ComBat + age/sex/eTIV-regression z-scored FreeSurfer table:
   /Volumes/Imaging5/EEG_MRI-MF/ALL/results/tabular/anat/
       z_scoring_qc+combat+regression_ndd/output/freesurfer_zscore_qc1_combat_regress.tsv
 
-Conventions match revision/5_cluster_anatomical_analysis pipeline:
+Conventions match the 5_cluster_anatomical_analysis/curated pipeline:
 - Wave selection: one row per subject. LEAP prefers W1 → W2 → W3; INOVAND
   prefers T1 → T2; other cohorts deduped by ID.
 - Phenotype labels come from
@@ -31,6 +31,7 @@ Outputs (under ../outputs/):
 - tables/autism_vs_nt_summary.csv  — per-metric headline counts
 """
 
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -40,18 +41,15 @@ from statsmodels.stats.multitest import multipletests
 # =============================================================================
 # PATHS
 # =============================================================================
-MRI_FILE = (
-    "/Volumes/Imaging5/EEG_MRI-MF/ALL/results/tabular/anat/"
-    "z_scoring_qc+combat+regression_ndd/output/"
-    "freesurfer_zscore_qc12_combat_regress.tsv"
-)
-DF_CLUSTERS_FILE = (
-    "/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results/dataset_paper/"
-    "dataframes/df_clusters_complete_kmeans.csv"
-)
+import _config  # shared paths + hyperparameters (see _config.py)
+
+MRI_FILE = _config.MRI_FILE
+# Phenotype-label file (CLUSTER_FILE env overridable, handled in _config). Only
+# PopulationS1 + the join keys are used here (autism is pooled across clusters).
+DF_CLUSTERS_FILE = _config.DF_CLUSTERS_FILE
 
 _SCRIPT_DIR = Path(__file__).parent
-_SECTION_DIR = _SCRIPT_DIR.parent  # 4_anatomical_analysis/revision/
+_SECTION_DIR = _SCRIPT_DIR.parent  # 4_anatomical_analysis/curated/
 R_INPUT_DIR = _SECTION_DIR / "outputs" / "figures" / "r_input_files"
 TABLES_DIR = _SECTION_DIR / "outputs" / "tables"
 
@@ -85,7 +83,7 @@ WAVE_PRIORITY = {
 
 
 # =============================================================================
-# LOADERS — identical to revision/5_cluster_anatomical_analysis/scripts/...
+# LOADERS — identical to 5_cluster_anatomical_analysis/curated/scripts/...
 # =============================================================================
 def _rename_freesurfer_cols(df: pd.DataFrame) -> pd.DataFrame:
     rename = {}
@@ -149,8 +147,9 @@ def _canonical_join_key_clusters(row) -> str | None:
         mri = str(row.get("MRI_ID", ""))
         if mri.startswith("sub-"):
             mri = mri[4:]
+        # Accept both "894" (paper file) and "894.0" (curated float-inferred).
         try:
-            return str(int(mri))
+            return str(int(float(mri)))
         except (TypeError, ValueError):
             return None
     return None
@@ -171,11 +170,27 @@ def load_data() -> pd.DataFrame:
     df = df.dropna(subset=["_join_key"])
     print(f"  with canonical join key: {len(df)} rows")
 
-    clu = pd.read_csv(DF_CLUSTERS_FILE, low_memory=False)
+    # Phenotype source: curated per-cohort clinical TSVs (mirrors 1_clustering)
+    # when CURATED_CLINICAL is set, else the DF_CLUSTERS_FILE roster.
+    if _config.CURATED_CLINICAL:
+        import curated_clinical
+        print("  phenotype source: curated clinical TSVs (LEAP+INOVAND+INFOR)")
+        # No IQ/SRS requirement for the MRI case-control: keep every scanned +
+        # diagnosed subject (769 Autism / 349 NT). Set require_features=True to
+        # restrict to the clustering-eligible IQ+SRS-complete cohort (747 / 319).
+        clu = curated_clinical.load_all_cohorts(require_features=False)
+    else:
+        clu = pd.read_csv(DF_CLUSTERS_FILE, low_memory=False)
     clu["_join_key"] = clu.apply(_canonical_join_key_clusters, axis=1)
-    keep = ["ID", "_join_key", "cohort", "PopulationS1"]
+    # Phenotype source: the curated file's `population_group` is the clean
+    # grouping (it folds "Autism to exclude" / "Autism with|without IDD" into
+    # "Autism"); the frozen paper file only has `PopulationS1`. Prefer the
+    # former when present so curated runs keep those cases.
+    pheno_col = "population_group" if "population_group" in clu.columns else "PopulationS1"
+    print(f"  phenotype column: {pheno_col}")
+    keep = ["ID", "_join_key", "cohort", pheno_col]
     keep = [c for c in keep if c in clu.columns]
-    clu = clu[keep].dropna(subset=["_join_key"])
+    clu = clu[keep].rename(columns={pheno_col: "PopulationS1"}).dropna(subset=["_join_key"])
     print(f"  clusters file with join key: {len(clu)} rows  "
           f"per cohort: {clu['cohort'].value_counts().to_dict()}")
 

@@ -29,10 +29,11 @@ Differences vs. ../scripts/01_generate_cluster_mri_inputs.py:
   the existing pipeline.
 
 Outputs are written to:
-  5_cluster_anatomical_analysis/revision/outputs/figures/r_input_files/
+  5_cluster_anatomical_analysis/curated/outputs/figures/r_input_files/
 """
 
 import argparse
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -52,17 +53,24 @@ NT_C1_ONLY = _args.nt_c1
 # =============================================================================
 # PATHS
 # =============================================================================
-DF_CLUSTERS_FILE = (
+# Cluster-label file. Defaults to the installed (paper) labels; override with
+# the CLUSTER_FILE env var to run on a different labelling (e.g. curated).
+DF_CLUSTERS_FILE = os.environ.get(
+    "CLUSTER_FILE",
     "/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource/"
-    "1_clustering/outputs/tables/individuals_metrics_with_clusters.csv"
+    "1_clustering/outputs/tables/individuals_metrics_with_clusters.csv",
 )
-MRI_FILE = (
+# Regressed FreeSurfer table. Full-sample fit as of 2026-07 (see pipeline_ndd
+# FIT_REFERENCE_COL note). Override with MRI_NDD_FILE for the `_noeuler` variant.
+MRI_FILE = os.environ.get("MRI_NDD_FILE") or (
     "/Volumes/Imaging5/EEG_MRI-MF/ALL/results/tabular/anat/"
     "z_scoring_qc+combat+regression_ndd/output/freesurfer_zscore_qc1_combat_regress.tsv"
 )
 _SCRIPT_DIR = Path(__file__).parent
-_SECTION_DIR = _SCRIPT_DIR.parent  # = 5_cluster_anatomical_analysis/revision/
-OUTPUT_DIR = _SECTION_DIR / "outputs" / "figures" / "r_input_files"
+_SECTION_DIR = _SCRIPT_DIR.parent  # = 5_cluster_anatomical_analysis/curated/
+# Output base dir name (env-overridable so sensitivity variants land elsewhere).
+OUTPUT_DIR = (_SECTION_DIR / os.environ.get("CLUSTER_OUT_DIR", "outputs")
+              / "figures" / "r_input_files")
 
 # =============================================================================
 # REGION LABEL MAPS
@@ -224,6 +232,12 @@ def load_and_prepare_data() -> pd.DataFrame:
 
     df_clu = pd.read_csv(DF_CLUSTERS_FILE, low_memory=False)
     df_clu["_join_key"] = df_clu.apply(_canonical_join_key_clusters, axis=1)
+    # Curated files carry `population_group`, the clean grouping that folds
+    # "Autism to exclude" / "Autism with|without IDD" into "Autism"; prefer it
+    # over PopulationS1 when present (paper file has only PopulationS1).
+    if "population_group" in df_clu.columns:
+        df_clu["PopulationS1"] = df_clu["population_group"]
+        print("  phenotype column: population_group")
     keep = [c for c in ["ID", "_join_key", "cohort", "Cluster",
                         "PopulationS1", "Population1"]
             if c in df_clu.columns]

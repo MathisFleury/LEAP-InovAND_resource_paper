@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Run the cluster-anatomical pipelines (5_cluster_anatomical_analysis legacy
-and /revision/ v2) with K-means, Ward, and GMM cluster labels (curated data).
+and /curated/ v2) with K-means, Ward, and GMM cluster labels (curated data).
 
 Optional flag: --autism-only — uses the autism-only clusterings produced by
 running 04_run_clustering_curated.py with --autism-only (i.e. cluster file
@@ -53,7 +53,7 @@ CURATED_DIR = ROOT / "1_clustering" / "outputs" / TAG / "tables"
 
 PIPELINES = [
     #(ROOT / "5_cluster_anatomical_analysis", "scripts/run_cluster_anatomical_analysis.py"),
-    (ROOT / "5_cluster_anatomical_analysis" / "revision", "scripts/run_cluster_anatomical_analysis_v2.py"),
+    (ROOT / "5_cluster_anatomical_analysis" / "curated", "scripts/run_cluster_anatomical_analysis_v2.py"),
 ]
 
 METHODS = ["kmeans", "ward", "gmm"]

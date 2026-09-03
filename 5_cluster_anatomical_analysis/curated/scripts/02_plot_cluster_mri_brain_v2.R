@@ -138,7 +138,10 @@ plot_cortical_cluster <- function(data, cluster, metric, atlas_type, output_dir,
   d_max <- if (!is.null(d_max_override)) d_max_override else
             max(abs(range(data$cohens_d, na.rm = TRUE)))
   n_cluster <- if ("n_a" %in% names(data)) data$n_a[1] else NA
-  n_label <- if (!is.na(n_cluster)) sprintf(" (n = %s)", n_cluster) else ""
+  n_nt      <- if ("n_b" %in% names(data)) data$n_b[1] else NA
+  n_label <- if (!is.na(n_cluster))
+    sprintf(" (n = %s vs NT = %s)", n_cluster,
+            ifelse(is.na(n_nt), "?", n_nt)) else ""
 
   # Plain Cohen's d plot
   p1 <- data %>%
@@ -196,7 +199,10 @@ plot_subcortical_cluster <- function(data, cluster, metric, atlas_type, output_d
   d_max <- if (!is.null(d_max_override)) d_max_override else
             max(abs(range(data$cohens_d, na.rm = TRUE)))
   n_cluster <- if ("n_a" %in% names(data)) data$n_a[1] else NA
-  n_label <- if (!is.na(n_cluster)) sprintf(" (n = %s)", n_cluster) else ""
+  n_nt      <- if ("n_b" %in% names(data)) data$n_b[1] else NA
+  n_label <- if (!is.na(n_cluster))
+    sprintf(" (n = %s vs NT = %s)", n_cluster,
+            ifelse(is.na(n_nt), "?", n_nt)) else ""
 
   p1 <- data %>%
     ggseg(mapping = aes(fill = cohens_d), atlas = aseg) +

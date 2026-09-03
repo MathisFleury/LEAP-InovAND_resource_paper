@@ -53,11 +53,10 @@ SECTION_OUTPUT_DIRS = [
     ROOT / "2_genetic_analysis" / "outputs",
     ROOT / "3_cluster_genetic_analysis" / "outputs",
     ROOT / "5_cluster_anatomical_analysis" / "outputs",
-    ROOT / "5_cluster_anatomical_analysis" / "revision" / "outputs",
+    ROOT / "5_cluster_anatomical_analysis" / "curated" / "outputs",
     ROOT / "7_cluster_functional_analysis" / "outputs",
     ROOT / "9_cluster_eeg_analysis" / "outputs",
     ROOT / "10_clinical_analysis" / "outputs",
-    ROOT / "revision" / "outputs",
 ]
 
 # Downstream commands to run, in order
@@ -70,7 +69,7 @@ COMMANDS = [
     *[[PY, str(p)] for p in sorted((ROOT / "3_cluster_genetic_analysis" / "scripts").glob("1?_*.py"))],
     # 5_cluster_anatomical (orchestrators)
     [PY, str(ROOT / "5_cluster_anatomical_analysis" / "scripts" / "run_cluster_anatomical_analysis.py")],
-    [PY, str(ROOT / "5_cluster_anatomical_analysis" / "revision" / "scripts" / "run_cluster_anatomical_analysis_v2.py")],
+    [PY, str(ROOT / "5_cluster_anatomical_analysis" / "curated" / "scripts" / "run_cluster_anatomical_analysis_v2.py")],
     # 7_cluster_functional
     [PY, str(ROOT / "7_cluster_functional_analysis" / "scripts" / "run_cluster_functional_analysis.py")],
     # 9_cluster_eeg
@@ -78,10 +77,13 @@ COMMANDS = [
     # 10_clinical
     [PY, str(ROOT / "10_clinical_analysis" / "scripts" / "01_plot_psychomotor_milestones.py")],
     [PY, str(ROOT / "10_clinical_analysis" / "scripts" / "02_plot_verbal_status.py")],
-    # revision/scripts (cluster-aware ones)
-    [PY, str(ROOT / "revision" / "scripts" / "05_synGO_chromEpiTF_per_cluster.py")],
-    [PY, str(ROOT / "revision" / "scripts" / "07_geneset_provenance.py")],
-    [PY, str(ROOT / "revision" / "scripts" / "09_cluster_vs_cohort_sMRI.py")],
+    # NOTE: this used to also run a top-level revision/scripts/{05_synGO_chromEpiTF_per_cluster.py,
+    # 07_geneset_provenance.py, 09_cluster_vs_cohort_sMRI.py} chain. That path never
+    # existed in this repo (checked: no such folder or filenames anywhere in the
+    # tree) -- the analysis it referred to was apparently never migrated in from
+    # wherever this script was adapted from. Removed rather than left dangling;
+    # if that gene-set/provenance/cluster-vs-cohort analysis still matters, it
+    # needs to be written (or ported) fresh, not pointed at a path that never existed.
 ]
 
 

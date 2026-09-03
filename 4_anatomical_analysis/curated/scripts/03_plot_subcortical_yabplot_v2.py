@@ -5,7 +5,7 @@ Subcortical Volume Brain Visualization — Autism vs NT (REVISION, R3)
 v2 of ../../scripts/04_plot_subcortical_yabplot.py.  Renders Cohen's d
 on the aseg atlas using a fixed [-0.4, 0.4] color scale to match the
 cortical brain maps emitted by 02_plot_anatomical_mri_brain_v2.R and the
-per-cluster v2 plots in 5_cluster_anatomical_analysis/revision/.
+per-cluster v2 plots in 5_cluster_anatomical_analysis/curated/.
 """
 
 from pathlib import Path

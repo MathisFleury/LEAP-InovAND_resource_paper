@@ -14,7 +14,9 @@ Reports:
     pipelines on the common-subject subset, plus FDR-significant overlap
 
 Outputs land under:
-    6_functional_analysis/preprocessing/revision/outputs/
+    6_functional_analysis/preprocessing/outputs_validate_refactor/
+(kept separate from preprocessing/outputs/, the real pipeline output this
+script only reads from -- never write into that directory from here).
 """
 from __future__ import annotations
 
@@ -26,14 +28,14 @@ import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind, pearsonr
 from statsmodels.stats.multitest import multipletests
 
-_REV_DIR = Path(__file__).resolve().parent
-OUT_DIR = _REV_DIR / "outputs"
+_SCRIPT_DIR = Path(__file__).resolve().parent
+OUT_DIR = _SCRIPT_DIR / "outputs_validate_refactor"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 LEGACY_CSV = Path(
     "/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results/dataframes/fmri/df_conn_cohort_norm.csv"
 )
-NEW_CSV = _REV_DIR.parent / "outputs" / "df_conn_cohort_norm.csv"
+NEW_CSV = _SCRIPT_DIR / "outputs" / "df_conn_cohort_norm.csv"
 
 
 def _load_with_dedup(path: Path) -> pd.DataFrame:
@@ -253,7 +255,7 @@ def main() -> None:
     make_summary_figure(feat_r, subj_r, t_l, t_n, fig_path)
     print(f"\n  wrote  {fig_path.name}")
 
-    print("\n✓ comparison complete  →  6_functional_analysis/preprocessing/revision/outputs/")
+    print("\n✓ comparison complete  →  6_functional_analysis/preprocessing/outputs_validate_refactor/")
 
 
 if __name__ == "__main__":

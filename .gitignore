@@ -16,6 +16,15 @@ Rplots.pdf
 # Atlas / resource data shipped alongside _resources/
 _resources/custom_subcortical_atlas_4S156/
 
+# Internal manuscript/reviewer materials in _resources/ (never for public
+# release) -- only the build_*.py / build_*.R pipeline scripts in that folder
+# are meant to be tracked; everything else there is a local-only working
+# document (redlines, reviewer PDFs, change-report drafts, TODOs).
+_resources/*.pdf
+_resources/*.docx
+_resources/*.md
+_resources/*.html
+
 # =========================================================================
 # Data file types (anywhere in the tree)
 # =========================================================================

@@ -17,9 +17,14 @@ Rare variant carrier analysis (deletions, LoF, missenses) across gene lists and 
 | Script | Description |
 |--------|-------------|
 | `_config.py` | Shared configuration: paths, palettes, gene list labels |
-| `01_carrier_annotation.py` | Annotate carriers (DEL, LoF, missense) across gene lists; assign LOEUF scores |
+| `01_carrier_annotation.py` | Annotate carriers (DEL, LoF, missense) across gene lists; assign LOEUF scores (hg19/gnomAD v2) |
+| `01b_hg38_carrier_annotation.py` | Same carrier annotation, GRCh38/gnomAD v2 coordinates |
 | `02_carrier_freq_or.py` | Population-level carrier frequencies and odds ratios (13 analysis blocks) |
 | `03_carrier_freq_or_clusters.py` | Cluster-level carrier frequencies, odds ratios, and PGS analysis |
+| `04_hg38_carrier_freq_or.py` | Population-level carrier frequencies and odds ratios, hg38 |
+| `05_v4_carrier_freq_or.py` | Population-level carrier frequencies and odds ratios, gnomAD v4 (current priority regime) |
+| `06_v4_carrier_freq_or_clusters.py` | Cluster-level carrier frequencies and odds ratios, gnomAD v4 |
+| `07_iq_pgs_loeuf_figures.py` / `07b_plot_iq_pgs_cluster_loeuf.R` | IQ x PGS-intelligence x LOEUF scatter (cluster-coloured) |
 
 ## Run
 
@@ -28,9 +33,14 @@ Rare variant carrier analysis (deletions, LoF, missenses) across gene lists and 
 ./run_all.sh
 
 # Or individually from 2_genetic_analysis/scripts/
-python 01_carrier_annotation.py
-python 02_carrier_freq_or.py
-python 03_carrier_freq_or_clusters.py
+python3.11 01_carrier_annotation.py
+python3.11 01b_hg38_carrier_annotation.py
+python3.11 02_carrier_freq_or.py
+python3.11 03_carrier_freq_or_clusters.py
+python3.11 04_hg38_carrier_freq_or.py
+python3.11 05_v4_carrier_freq_or.py
+python3.11 06_v4_carrier_freq_or_clusters.py
+python3.11 07_iq_pgs_loeuf_figures.py && Rscript 07b_plot_iq_pgs_cluster_loeuf.R
 ```
 
 ## Outputs

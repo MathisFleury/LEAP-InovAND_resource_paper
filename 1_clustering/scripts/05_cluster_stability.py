@@ -24,7 +24,6 @@
 import os
 import sys
 import warnings
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -43,30 +42,21 @@ warnings.filterwarnings(
 )
 
 # --- Configuration (mirrors 04_run_clustering.py) ---
-# Run:  python3.11 05_cluster_stability.py [curated]
-#   curated -> read outputs/curated/tables/cluster_assignments_curated.csv
-#              (written by 04_run_clustering_curated.py) and write to
-#              outputs/curated/; frozen run (no arg) is unaffected.
-if "curated" in sys.argv[1:]:
-    _curated_csv = (Path(__file__).parent / ".." / "outputs" / "curated" / "tables"
-                    / "cluster_assignments_curated.csv").resolve()
-    if not _curated_csv.exists():
-        sys.exit(f"Curated features not found: {_curated_csv}\n"
-                  "Run 04_run_clustering_curated.py first.")
-    os.environ["STABILITY_FEATURES_CSV"] = str(_curated_csv)
-    os.environ["STABILITY_OUTPUT_SUBDIR"] = "curated"
-
+# Curated (current, priority regime) by default -- reads the ready feature CSV
+# (ID, IQ, SRS_tscore) written by 04_run_clustering_curated.py. No frozen/
+# deprecated-data fallback here: for the paper-reproduction run, see
+# legacy/1_clustering/05_cluster_stability_frozen.py, which derives the same
+# ready-CSV shape from the deprecated individuals_metrics.tsv (see root
+# CLAUDE.md) and invokes this same engine -- kept out of this file so that
+# reference isn't visible in the main tree.
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.environ.get(
-    "LEAP_INOVAND_DATA",
-    os.path.join(_script_dir, "..", "..", "..", "imaging2genet", "0_input", "dataframes"),
-)
-INDIVIDUALS_METRICS = os.path.join(DATA_PATH, "individuals_metrics.tsv")
-# Optional: read a ready feature CSV (ID, IQ, SRS_tscore) instead of the frozen
-# paper TSV — e.g. the curated clustering's cluster_assignments_curated.csv.
-# STABILITY_OUTPUT_SUBDIR redirects outputs (e.g. "curated") to avoid clobbering.
-FEATURES_CSV = os.environ.get("STABILITY_FEATURES_CSV")
-_OUT_SUB = os.environ.get("STABILITY_OUTPUT_SUBDIR", "")
+_DEFAULT_FEATURES_CSV = os.path.join(_script_dir, "..", "outputs", "curated", "tables",
+                                     "cluster_assignments_curated.csv")
+FEATURES_CSV = os.environ.get("STABILITY_FEATURES_CSV", _DEFAULT_FEATURES_CSV)
+if not os.path.exists(FEATURES_CSV):
+    sys.exit(f"Input not found: {FEATURES_CSV}\nRun 04_run_clustering_curated.py first"
+              " (or set STABILITY_FEATURES_CSV to point elsewhere).")
+_OUT_SUB = os.environ.get("STABILITY_OUTPUT_SUBDIR", "curated")
 OUTPUT_BASE = os.path.normpath(os.path.join(_script_dir, "..", "outputs", _OUT_SUB))
 FIGURES_DIR = os.path.join(OUTPUT_BASE, "figures")
 TABLES_DIR = os.path.join(OUTPUT_BASE, "tables")
@@ -80,12 +70,6 @@ SUBSAMPLE_FRACS = [0.50, 0.60, 0.70, 0.80, 0.90]
 NOISE_SDS = [0.05, 0.10, 0.20, 0.30, 0.50]
 SAMPLE_SIZE_GRID = [50, 100, 150, 200, 300, 400, 500, 600, 800, 1000]
 STABLE_ARI = 0.75
-
-EXCLUDED_IDS = {
-    "429385763020",
-    "C0733-011-137-001",
-    "C0733-011-155-001",
-}
 
 METHODS = ["kmeans", "ward", "gmm"]
 METHOD_LABELS = {"kmeans": "K-means (primary)", "ward": "Ward (sensitivity)", "gmm": "GMM (sensitivity)"}
@@ -164,19 +148,11 @@ FIT_FULL_FNS = {
 # Data preparation
 # -----------------------------------------------------------------------------
 clinical_features = ["IQ", "SRS_tscore"]
-if FEATURES_CSV:
-    print(f"Loading features from ready CSV: {FEATURES_CSV}")
-    df = pd.read_csv(FEATURES_CSV, low_memory=False)
-    for c in clinical_features:
-        df[c] = pd.to_numeric(df.get(c), errors="coerce")
-    df_clust = df[clinical_features + ["ID"]].dropna().reset_index(drop=True)
-else:
-    df = pd.read_csv(INDIVIDUALS_METRICS, sep="\t", low_memory=False)
-    df = df.drop_duplicates(subset=["ID"]).replace({999: np.nan, 998: np.nan})
-    df = df[df["Relation_to_proposant"] == "participant"]
-    df["IQ"] = df["total_IQ"].fillna(df["performance_IQ"])
-    df_clust = df[clinical_features + ["ID"]].dropna().reset_index(drop=True)
-    df_clust = df_clust[~df_clust["ID"].astype(str).isin(EXCLUDED_IDS)].reset_index(drop=True)
+print(f"Loading features from ready CSV: {FEATURES_CSV}")
+df = pd.read_csv(FEATURES_CSV, low_memory=False)
+for c in clinical_features:
+    df[c] = pd.to_numeric(df.get(c), errors="coerce")
+df_clust = df[clinical_features + ["ID"]].dropna().reset_index(drop=True)
 X = df_clust[clinical_features].values
 X_scaled = StandardScaler().fit_transform(X)
 N = len(df_clust)

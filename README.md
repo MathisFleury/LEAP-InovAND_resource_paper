@@ -100,14 +100,16 @@ cd 1_clustering && ./run_all.sh
 ```
 
 Runs the **curated** regime by default (clustering → PCA → stability →
-method comparison → autism-only sensitivity → scatter panels — pass
-`curated` to `01_pca_features.R`/`05_cluster_stability.py`/`06_method_comparison.py`
-directly, no separate wrapper files), then a separate, clearly labelled
-**frozen/paper-reproduction** block. The frozen-only scripts with no
-downstream dependents anywhere (feature-selection rationale, cluster
-validation, Figure-4a-style heatmap, concept map, reval k-selection) live
-in `legacy/1_clustering/` with their own `run_all.sh`, run after the main
-frozen block. Three cross-section batch drivers
+method comparison → autism-only sensitivity → scatter panels), then a
+separate, clearly labelled **frozen/paper-reproduction** block (only
+`04_run_clustering.py`/`06_method_comparison.py`, whose output or CLI-arg
+sharing keeps them in this tree). `01_pca_features.R`/`05_cluster_stability.py`
+are curated-only here — no deprecated-data reference in this file at all —
+with their frozen counterparts, plus every other frozen-only script with no
+downstream dependents (feature-selection rationale, cluster validation,
+Figure-4a-style heatmap, concept map, reval k-selection), living in
+`legacy/1_clustering/` with its own `run_all.sh`, run after the main frozen
+block. Three cross-section batch drivers
 (`run_anatomical_with_other_methods.py`,
 `run_downstream_with_curated.py`, `run_genetics_with_other_methods.py`)
 rerun the relevant downstream sections once per clustering method

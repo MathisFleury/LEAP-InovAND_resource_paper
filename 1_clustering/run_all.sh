@@ -13,11 +13,11 @@ echo "--- 4. Run clustering (k=3), curated cohort ---"
 python3.11 04_run_clustering_curated.py
 
 echo "--- 1. PCA on clinical features, curated cohort ---"
-Rscript 01_pca_features.R curated
+Rscript 01_pca_features.R
 Rscript 01b_sample_size_table.R curated
 
 echo "--- 5. Cluster stability, curated cohort (k-means/Ward/GMM) ---"
-python3.11 05_cluster_stability.py curated
+python3.11 05_cluster_stability.py
 python3.11 05b_stability_figure_merged.py
 
 echo "--- 6. Method comparison (k-means vs Ward vs GMM), curated ---"
@@ -34,20 +34,15 @@ python3.11 10_cluster_scatter_panels.py
 echo ""
 echo "=== FROZEN / paper-reproduction regime (optional -- reproduces the"
 echo "    original submission's figures; not the default for new work) ==="
-echo "    Only the genuinely shared scripts run here (curated mode sources/"
-echo "    subprocess-calls these same files). Pure frozen-only leaf scripts"
-echo "    (feature selection rationale, cluster validation, heatmap, concept"
-echo "    map, reval k-selection) moved to ../legacy/1_clustering/ -- run"
-echo "    that folder's own run_all.sh separately if you need them."
-
-echo "--- 1. PCA (frozen) ---"
-Rscript 01_pca_features.R
+echo "    Only 04 and 06 run here -- 01_pca_features.R and 05_cluster_stability.py"
+echo "    are now curated-only (no deprecated-data reference in this tree)."
+echo "    Every genuinely frozen-only script (feature selection rationale,"
+echo "    cluster validation, PCA, stability, heatmap, concept map, reval"
+echo "    k-selection) moved to ../legacy/1_clustering/ -- run that folder's"
+echo "    own run_all.sh separately if you need them."
 
 echo "--- 4. Run clustering (k=3), frozen cohort ---"
 python3.11 04_run_clustering.py
-
-echo "--- 5. Cluster stability, frozen cohort ---"
-python3.11 05_cluster_stability.py
 
 echo "--- 6. Method comparison, frozen cohort ---"
 python3.11 06_method_comparison.py

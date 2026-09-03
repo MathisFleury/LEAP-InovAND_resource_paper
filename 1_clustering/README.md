@@ -14,30 +14,33 @@ Clinical clustering on IQ and SRS-2 dimensions for the LEAP-InovAND Nature Neuro
 
 | Script | Description |
 |--------|-------------|
-| `01_pca_features.R` | PCA on all clinical measures; scree plot, loadings, variable contributions. `Rscript 01_pca_features.R [curated]` — curated reads the curated cluster table instead of the frozen TSV (the `curated`-suffixed variant used to be a separate wrapper file; folded in as a CLI arg since it was only ever a thin `source()` call). |
-| `01b_sample_size_table.R` | Companion gt table for `01`'s sample-size completeness. `[curated]` arg, same convention. |
-| `04_run_clustering.py` | K-means (+ Ward/GMM sensitivity) k=3 on IQ and SRS, frozen data. |
-| `04_run_clustering_curated.py` | Same clustering, curated per-cohort clinical TSVs (LEAP+INOVAND+INFOR) — a genuinely separate implementation (different multi-cohort loading logic), not a thin wrapper, so kept as its own file. Writes the curated cluster label tables ~20 other files across the repo read by default. |
-| `05_cluster_stability.py` | Bootstrap/subsampling/noise stability checks, all 3 methods. `[curated]` arg (folded in the same way as `01`). |
+| `01_pca_features.R` | PCA on all clinical measures; scree plot, loadings, variable contributions. **Curated-only** — reads the curated cluster table by default, no deprecated-data fallback in this file. For the frozen/paper-reproduction run, see `legacy/1_clustering/01_pca_features_frozen.R`. |
+| `01b_sample_size_table.R` | Companion gt table for `01`'s sample-size completeness. `[curated]` arg. |
+| `04_run_clustering.py` | K-means (+ Ward/GMM sensitivity) k=3 on IQ and SRS, frozen data. Its output (`cluster_assignments.csv`, `individuals_metrics_with_clusters.csv`) is still read by ~20 files across 8 other sections in their frozen/default mode, so — unlike `01`/`05` — this stays a genuinely separate file rather than folding into the curated version. |
+| `04_run_clustering_curated.py` | Same clustering, curated per-cohort clinical TSVs (LEAP+INOVAND+INFOR) — a genuinely separate implementation (different multi-cohort loading logic), not a thin wrapper. Writes the curated cluster label tables most downstream sections read by default. |
+| `05_cluster_stability.py` | Bootstrap/subsampling/noise stability checks, all 3 methods. **Curated-only**, same reasoning as `01`. Frozen run: `legacy/1_clustering/05_cluster_stability_frozen.py`. |
 | `05b_stability_figure_merged.py` | Merges the 3 per-method stability figures into one (defaults to curated). |
-| `06_method_comparison.py` / `06b_method_comparison_table.R` | K-means vs Ward vs GMM comparative metrics (internal indices, bootstrap ARI). `[curated]` arg. |
+| `06_method_comparison.py` / `06b_method_comparison_table.R` | K-means vs Ward vs GMM comparative metrics (internal indices, bootstrap ARI). `[curated]` arg — kept shared (not split) since it never touches the deprecated data path directly for either mode's core logic beyond the frozen sample it's given. |
 | `07_autism_only_clustering.py` / `07b_autism_only_table.R` | Autism-only clustering sensitivity (Reviewer #4.6). |
 | `10_cluster_scatter_panels.py` | Cluster scatter panels (IQ × SRS, 4 colourings); defaults to curated, `frozen` arg for the paper-reproduction table. |
 | `run_anatomical_with_other_methods.py`, `run_downstream_with_curated.py`, `run_genetics_with_other_methods.py` | Cross-section batch drivers — rerun the relevant downstream sections once per clustering method (K-means/Ward/GMM) on curated data. |
 
-`../legacy/1_clustering/` holds the frozen-only leaf scripts that have zero
-downstream dependents anywhere in the repo (feature-selection rationale,
-cluster validation, the Figure-4a-style heatmap, the concept-map figure, and
-the reval k-selection check) — see that folder's own `run_all.sh`.
+`../legacy/1_clustering/` holds every frozen-only script that would otherwise
+put a deprecated-data reference in this tree, or has zero downstream
+dependents anywhere in the repo: `01_pca_features_frozen.R`,
+`05_cluster_stability_frozen.py` (thin invokers for the shared engines
+above), plus `02_feature_selection_rationale.R`, `03_cluster_validation.R`,
+`08_cluster_heatmap.py`, `09_cluster_jointplot.py`, `12_reval_kselection.py`
+(genuine leaves) — see that folder's own `run_all.sh`.
 
 ## Run
 
 ```bash
-# From 1_clustering/ — curated (default) + frozen blocks
+# From 1_clustering/ — curated (default) + frozen blocks (04, 06 only)
 ./run_all.sh
 
-# From legacy/1_clustering/ — the frozen-only leaf scripts (run after
-# 1_clustering/run_all.sh's frozen block, which they read the output of)
+# From legacy/1_clustering/ — every frozen-only script (run after
+# 1_clustering/run_all.sh's frozen block, which 08/09 read the output of)
 cd ../legacy/1_clustering && ./run_all.sh
 ```
 

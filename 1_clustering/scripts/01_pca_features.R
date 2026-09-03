@@ -8,32 +8,22 @@
 # =============================================================================
 
 # --- Configuration ---
-# Run:  Rscript 01_pca_features.R [curated]
-#   curated -> read outputs/curated/tables/individuals_metrics_with_clusters_curated.csv
-#              (written by 04_run_clustering_curated.py) and write *_curated
-#              outputs to outputs/curated/; frozen run (no arg) is unaffected.
-if ("curated" %in% commandArgs(trailingOnly = TRUE)) {
-  curated_csv <- file.path("..", "outputs", "curated", "tables",
-                           "individuals_metrics_with_clusters_curated.csv")
-  if (!file.exists(curated_csv)) {
-    stop("Curated features not found: ", curated_csv, "\nRun 04_run_clustering_curated.py first.")
-  }
-  Sys.setenv(PCA_INPUT_CSV = normalizePath(curated_csv), PCA_OUTPUT_SUBDIR = "curated")
+# Curated (current, priority regime) by default -- reads the curated cluster
+# table written by 04_run_clustering_curated.py. No frozen/deprecated-data
+# fallback here: for the paper-reproduction run, see
+# legacy/1_clustering/01_pca_features_frozen.R, which sets PCA_INPUT_CSV to
+# the deprecated individuals_metrics.tsv (see root CLAUDE.md) and invokes
+# this same engine -- kept out of this file so that reference isn't visible
+# in the main tree.
+DEFAULT_INPUT_CSV <- file.path(getwd(), "..", "outputs", "curated", "tables",
+                               "individuals_metrics_with_clusters_curated.csv")
+INDIVIDUALS_METRICS <- Sys.getenv("PCA_INPUT_CSV", unset = DEFAULT_INPUT_CSV)
+if (!file.exists(INDIVIDUALS_METRICS)) {
+  stop("Input not found: ", INDIVIDUALS_METRICS, "\nRun 04_run_clustering_curated.py first",
+       " (or set PCA_INPUT_CSV to point elsewhere).")
 }
-
-# Set LEAP_INOVAND_DATA to data directory, or adjust path below
-# Data path: set LEAP_INOVAND_DATA or use default (sibling imaging2genet repo)
-DATA_PATH <- Sys.getenv("LEAP_INOVAND_DATA", unset = NA)
-if (is.na(DATA_PATH) || DATA_PATH == "") {
-  DATA_PATH <- file.path(getwd(), "..", "..", "..", "imaging2genet", "0_input", "dataframes")
-}
-INDIVIDUALS_METRICS <- Sys.getenv("PCA_INPUT_CSV", unset = file.path(DATA_PATH, "individuals_metrics.tsv"))
-OUTPUT_SUBDIR <- Sys.getenv("PCA_OUTPUT_SUBDIR", unset = "")
-OUTPUT_BASE <- if (nzchar(OUTPUT_SUBDIR)) {
-  normalizePath(file.path(getwd(), "..", "outputs", OUTPUT_SUBDIR), mustWork = FALSE)
-} else {
-  normalizePath(file.path(getwd(), "..", "outputs"), mustWork = FALSE)
-}
+OUTPUT_SUBDIR <- Sys.getenv("PCA_OUTPUT_SUBDIR", unset = "curated")
+OUTPUT_BASE <- normalizePath(file.path(getwd(), "..", "outputs", OUTPUT_SUBDIR), mustWork = FALSE)
 FIGURES_DIR <- file.path(OUTPUT_BASE, "figures")
 TABLES_DIR <- file.path(OUTPUT_BASE, "tables")
 dir.create(FIGURES_DIR, recursive = TRUE, showWarnings = FALSE)

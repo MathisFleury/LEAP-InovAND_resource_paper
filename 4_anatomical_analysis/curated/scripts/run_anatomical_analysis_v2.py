@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Anatomical MRI Analysis Pipeline — REVISION (v2)
+Anatomical MRI Analysis Pipeline — curated (v2)
 
 Runs the v2 anatomical pipeline rebuilt on the QC + ComBat +
 age/sex/eTIV-regressed FreeSurfer table, with LEAP_W1 / INOVAND_T1
@@ -13,6 +13,17 @@ Steps:
   4. Euler number by population — surface-reconstruction QC summary.
   5. LOEUF (hg38) × MRI Pearson correlations — all-carriers only, per-panel FDR.
   6. LOEUF (hg38) brain maps — ggseg cortical + aseg subcortical; raw p<0.01 outlines.
+  7. LOEUF (hg38) OLS beta + permutation, per-ROI beta figures, gt tables.
+  8. Clinical x MRI correlations (curated clinical) + brain maps + scatter panels.
+  9. QC/robustness: per-site effect size, age-imbalance sensitivity, Euler
+     confound check (whole-cohort + all-features whole-brain figure).
+  10. Figure 7 composite (thickness maps + IQxSRS panel + beta boxplots) and
+      the supplementary brain-map grid.
+
+Step 19 (build_composite) ALSO requires
+../../10_clinical_analysis/scripts/04e_plot_iq_srs_cluster_reframe.R to have
+been run first (a different section) -- it checks for that prerequisite
+itself and exits with a clear message if missing, rather than failing silently.
 """
 
 import subprocess
@@ -44,7 +55,7 @@ def run_script(script_path: Path, description: str) -> bool:
 
 
 def main() -> bool:
-    print("Anatomical MRI Analysis Pipeline — REVISION (v2)")
+    print("Anatomical MRI Analysis Pipeline — curated (v2)")
     print("=" * 60)
 
     steps = [
@@ -66,6 +77,31 @@ def main() -> bool:
          "LOEUF (v4) × MRI OLS β + permutation (gene-list-specific null)", False),
         (_SCRIPT_DIR / "09_loeuf_combined_brain_figure_v2.R",
          "LOEUF (v4) regression β brain maps (per-pathway, perm p<0.05)", False),
+        (_SCRIPT_DIR / "10_beta_coefficients_roi_v2.py",
+         "Per-ROI beta-coefficient figures (LOEUF x MRI, hg38 regperm)", False),
+        (_SCRIPT_DIR / "11_age_imbalance_sensitivity.py",
+         "Age-imbalance sensitivity (Autism vs NT, ComBat file)", False),
+        (_SCRIPT_DIR / "12_clinical_mri_correlations_v2.py",
+         "Clinical x MRI Pearson correlations (curated clinical)", False),
+        (_SCRIPT_DIR / "13_clinical_mri_brain_maps_v2.R",
+         "Clinical x MRI brain maps (ggseg)", False),
+        (_SCRIPT_DIR / "14_site_effect_size_stg.py",
+         "Per-site effect size, L superior temporal thickness", False),
+        (_SCRIPT_DIR / "15_clinical_mri_scatter_v2.py",
+         "Clinical x MRI scatter panels", False),
+        (_SCRIPT_DIR / "16_gt_tables_anat_v2.R",
+         "Publication gt tables (Autism vs NT, curated)", False),
+        (_SCRIPT_DIR / "17_euler_confound_check.py",
+         "Euler-number (image-quality) confound check", False),
+        (_SCRIPT_DIR / "18_euler_phenotype_all_features.py",
+         "Euler x phenotype whole-brain figure (all 232 features)", False),
+        (_SCRIPT_DIR / "20_thickness_maps_for_composite.R",
+         "Thickness brain maps for the Figure 7 composite", False),
+        (_SCRIPT_DIR / "19_build_composite.py",
+         "Figure 7 composite (also needs 10_clinical_analysis's 04e R script "
+         "run first -- see module docstring)", False),
+        (_SCRIPT_DIR / "21_supp_brain_grid.R",
+         "Supplementary brain-map grid (4 features x 3 gene lists)", False),
     ]
 
     results = {}

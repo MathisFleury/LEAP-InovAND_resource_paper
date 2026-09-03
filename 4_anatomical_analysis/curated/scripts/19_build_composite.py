@@ -11,7 +11,7 @@ Boxplots reuse 08's regperm tables; x-ticks relabeled (All Genes->Protein Coding
 main title + "Gene List" x-title dropped, legend dropped (x-ticks carry the labels).
 
 Prereqs (run first):
-  Rscript 18_thickness_maps_for_composite.R
+  Rscript 20_thickness_maps_for_composite.R
   Rscript ../../10_clinical_analysis/scripts/04e_plot_iq_srs_cluster_reframe.R
 
 Run:  python3 19_build_composite.py

@@ -98,6 +98,31 @@ def main() -> bool:
             False,
             '/usr/local/bin/python3.11',
         ),
+        (
+            _SCRIPT_DIR / '06_cluster_nbs.py',
+            'Per-cluster NBS (Figure 6b data)',
+            False,
+            '/usr/local/bin/python3.11',
+        ),
+        (
+            # Must run before 07 -- the R composite embeds its PNG insets.
+            _SCRIPT_DIR / '08_figure6b_nbs_subcortical.py',
+            'Figure 6b subcortical yabplot insets',
+            False,
+            '/usr/local/bin/python3.11',
+        ),
+        (
+            _SCRIPT_DIR / '07_figure6b_nbs_cortical.R',
+            'Figure 6b full composite (cortical + subcortical insets)',
+            False,
+            None,
+        ),
+        (
+            _SCRIPT_DIR / '09_nbs_prominent_networks.py',
+            'Most prominent networks/regions per cluster x direction',
+            False,
+            '/usr/local/bin/python3.11',
+        ),
     ]
 
     results: dict[str, bool] = {}

@@ -67,6 +67,12 @@ def main() -> bool:
          "Combined single-page cluster brain figure (per cluster, FDR)", False),
         (_SCRIPT_DIR / "03_plot_subcortical_cluster_yabplot_v2.py",
          "Subcortical brain map (yabplot, Cohen's d)", False),
+        (_SCRIPT_DIR / "05_figure6a_anatomical_v2.R",
+         "Figure 6a composite grid (3 modalities x 3 clusters)", False),
+        (_SCRIPT_DIR / "06_cluster_global_measures_violin_v2.py",
+         "Global structural measures by cluster (violin)", False),
+        (_SCRIPT_DIR / "07_gt_tables_cluster_v2.R",
+         "Publication gt tables (per-cluster MRI stats)", False),
     ]
 
     results = {}

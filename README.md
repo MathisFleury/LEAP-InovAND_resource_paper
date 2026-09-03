@@ -34,6 +34,8 @@ block separately, clearly labelled.
 9_cluster_eeg_analysis/         # EEG by cluster
 10_clinical_analysis/           # Psychomotor milestones, IQ/SRS/cohort figures, verbal status
 11_age_sex_analysis/            # Diagnosis x age / x sex interaction + age-binned checks
+legacy/                         # Frozen-only scripts with zero downstream dependents,
+                                 #   moved out of their section (currently: 1_clustering/)
 _resources/                     # Cross-section figure/table builders + atlas builder
 ```
 
@@ -98,11 +100,15 @@ cd 1_clustering && ./run_all.sh
 ```
 
 Runs the **curated** regime by default (clustering → PCA → stability →
-method comparison → autism-only sensitivity → scatter panels), then a
-separate, clearly labelled **frozen/paper-reproduction** block (original
-01–06, 08–09, plus the reval check). Curated variants (`04_run_clustering_curated.py`,
-`05_cluster_stability_curated.py`, …) can also be run individually; three
-cross-section batch drivers (`run_anatomical_with_other_methods.py`,
+method comparison → autism-only sensitivity → scatter panels — pass
+`curated` to `01_pca_features.R`/`05_cluster_stability.py`/`06_method_comparison.py`
+directly, no separate wrapper files), then a separate, clearly labelled
+**frozen/paper-reproduction** block. The frozen-only scripts with no
+downstream dependents anywhere (feature-selection rationale, cluster
+validation, Figure-4a-style heatmap, concept map, reval k-selection) live
+in `legacy/1_clustering/` with their own `run_all.sh`, run after the main
+frozen block. Three cross-section batch drivers
+(`run_anatomical_with_other_methods.py`,
 `run_downstream_with_curated.py`, `run_genetics_with_other_methods.py`)
 rerun the relevant downstream sections once per clustering method
 (K-means / Ward / GMM).

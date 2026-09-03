@@ -12,7 +12,7 @@ Runs the full analysis suite on a harmonised connectivity table:
 
 Then two more blocks: sensitivity analyses (01b/01c cutoff + covariate
 variants, and their comparison summary/figures against the primary above),
-and a legacy-vs-revised preprocessing QA comparison (04_plot_legacy_vs_revised_schaefer.R).
+and a legacy-vs-revised preprocessing QA comparison (12_plot_legacy_vs_revised_schaefer.R).
 
 Targeting a specific dataset/variant: set the env vars the scripts honour
 (inherited by every subprocess here), e.g. to run on a 6-2 v0.11 variant:
@@ -93,16 +93,16 @@ def main():
     sensitivity_steps = [
         (_SCRIPT_DIR / '01b_autism_td_sensitivity_6min.py', 'Sensitivity: >=6 min + mean_fd<1mm cutoff', False, PY, None),
         (_SCRIPT_DIR / '01c_autism_td_covariate_adjusted.py', 'Sensitivity: OLS group + mean_fd + minutes covariates', False, PY, None),
-        (_SCRIPT_DIR / '02_sensitivity_comparison_summary.py', 'Sensitivity: primary vs 6-min vs covariate-adjusted summary', False, PY, None),
-        (_SCRIPT_DIR / '03_plot_sensitivity_comparison.py', 'Sensitivity: n-significant / sample-size bar charts', False, PY, None),
-        (_SCRIPT_DIR / '04_plot_autism_td_schaefer_sensitivity.R', 'Sensitivity: Schaefer atlas maps (6-min + covariate-adjusted)', False, None, None),
+        (_SCRIPT_DIR / '09_sensitivity_comparison_summary.py', 'Sensitivity: primary vs 6-min vs covariate-adjusted summary', False, PY, None),
+        (_SCRIPT_DIR / '10_plot_sensitivity_comparison.py', 'Sensitivity: n-significant / sample-size bar charts', False, PY, None),
+        (_SCRIPT_DIR / '11_plot_autism_td_schaefer_sensitivity.R', 'Sensitivity: Schaefer atlas maps (6-min + covariate-adjusted)', False, None, None),
     ]
 
     # Legacy-vs-revised preprocessing comparison (QA diagnostic, not a
     # sensitivity analysis) -- only meaningful if outputs/figures/legacy/
     # (preprocessing_cohort.py's old output) still exists locally.
     legacy_compare_steps = [
-        (_SCRIPT_DIR / '04_plot_legacy_vs_revised_schaefer.R', 'QA: legacy vs revised preprocessing Schaefer comparison', False, None, None),
+        (_SCRIPT_DIR / '12_plot_legacy_vs_revised_schaefer.R', 'QA: legacy vs revised preprocessing Schaefer comparison', False, None, None),
     ]
 
     results = {}

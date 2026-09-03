@@ -53,11 +53,11 @@ echo "--- 8-9. Cluster heatmap (Figure 4a style) + concept map ---"
 python3.11 08_cluster_heatmap.py
 python3.11 09_cluster_jointplot.py
 
-echo "--- 7 (reval). k-selection stability-based validation ---"
+echo "--- 12 (reval). k-selection stability-based validation ---"
 echo "    NOTE: reads the DEPRECATED frozen individuals_metrics.tsv directly"
 echo "    (see root CLAUDE.md) -- kept as a historical robustness check, not"
 echo "    migrated to curated data. Flag for removal if no longer needed."
-python3.11 07_reval_kselection.py
+python3.11 12_reval_kselection.py
 
 echo ""
 echo "=== Done. Outputs in 1_clustering/outputs/ (curated/ subdir + root) ==="

@@ -67,7 +67,7 @@ def plot_n_significant(df: pd.DataFrame, out_path: Path) -> None:
 
 def plot_sample_sizes(df: pd.DataFrame, out_path: Path) -> None:
     # For autism_vs_NT, n_group_a / n_group_b are stored separately as n_autism/n_nt in
-    # the summary csv via the column-naming choices in 02_sensitivity_comparison_summary.py.
+    # the summary csv via the column-naming choices in 09_sensitivity_comparison_summary.py.
     # For cluster_*/pairwise we already have n_group_a, n_group_b.
     df = df.copy()
     # Harmonise sample-size columns: section-6 summary writes nothing for n_group_*
@@ -168,7 +168,7 @@ def main() -> int:
     if not SUMMARY_CSV.exists():
         raise FileNotFoundError(
             f'Comparison summary not found: {SUMMARY_CSV}. '
-            'Run 02_sensitivity_comparison_summary.py first.'
+            'Run 09_sensitivity_comparison_summary.py first.'
         )
     df = pd.read_csv(SUMMARY_CSV)
 

@@ -10,13 +10,17 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/scripts" && pwd)"
 cd "$SCRIPT_DIR"
 PY=/usr/local/bin/python3.11
+# Manuscript's primary rsfMRI regime -- matches 6_functional_analysis/concat's
+# and 7_cluster_functional_analysis's run_all.sh. Scripts already default here;
+# set explicitly so the data source is self-documenting, not implicit.
+FMRI_CSV="$SCRIPT_DIR/../../6_functional_analysis/concat/preprocessing/outputs/nogsr_concat/df_conn_cohort_norm_nogsr_concat.csv"
 
 echo "=== 01. Diagnosis x age / x sex interaction (anatomical + functional models) ==="
 $PY 01_age_sex_interactions.py
 
 echo ""
 echo "=== 02. Functional NBS for the age/sex interaction ==="
-$PY 02_func_nbs_interaction.py
+AUTISM_TD_FMRI_CSV="$FMRI_CSV" $PY 02_func_nbs_interaction.py
 
 echo ""
 echo "=== 03. Functional interaction double network matrix ==="
@@ -52,7 +56,7 @@ $PY 10_age_bin_brain_maps.py
 
 echo ""
 echo "=== 12. Age-binned functional NBS ==="
-$PY 12_age_bin_func_nbs.py
+AUTISM_TD_FMRI_CSV="$FMRI_CSV" $PY 12_age_bin_func_nbs.py
 
 echo ""
 echo "=== 13. Age-binned functional NBS grid figure ==="

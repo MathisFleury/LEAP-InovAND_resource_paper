@@ -10,9 +10,9 @@
 # 03_plot_func_interaction_double_matrix.R's network-matrix builder to
 # 12_age_bin_func_nbs.py's per-bin outputs (scanner[+motion][+sex]-adjusted).
 #
-# Reads: outputs/nbs/age_bin_nbs_edges_<bin>_<sign>.csv
-#        outputs/nbs/age_bin_nbs_<bin>_<sign>.csv          (for p_FWER)
-# Output: outputs/nbs/composite/age_bin_nbs_grid.pdf
+# Reads: outputs/tables/nbs/age_bin_nbs_edges_<bin>_<sign>.csv
+#        outputs/tables/nbs/age_bin_nbs_<bin>_<sign>.csv          (for p_FWER)
+# Output: outputs/figures/nbs/composite/age_bin_nbs_grid.pdf
 # =============================================================================
 suppressPackageStartupMessages({
   library(dplyr); library(readr); library(reshape2); library(ggplot2)
@@ -24,8 +24,8 @@ ATLAS_FILE <- "/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/ressources/atlas
 args <- commandArgs(trailingOnly = FALSE)
 sp <- sub("--file=", "", args[grep("--file=", args)])
 script_dir <- if (length(sp) == 0) getwd() else dirname(normalizePath(sp))
-IO_DIR <- file.path(dirname(script_dir), "outputs", "nbs")
-OUT_DIR <- file.path(IO_DIR, "composite")
+IO_DIR <- file.path(dirname(script_dir), "outputs", "tables", "nbs")
+OUT_DIR <- file.path(dirname(script_dir), "outputs", "figures", "nbs", "composite")
 if (!dir.exists(OUT_DIR)) dir.create(OUT_DIR, recursive = TRUE)
 
 NET_ORDER <- c("Amyg. & Hippoc.", "Striatum", "Cerebellum", "Thalamus",

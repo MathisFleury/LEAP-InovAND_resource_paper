@@ -18,7 +18,7 @@ hidden.
 
 Per bin: Welch's two-sample t-test (autism vs NT) per feature, identical to
 the primary whole-cohort test in
-4_anatomical_analysis/curated/scripts/01_anatomical_mri_autism_nt_v2.py
+4_anatomical_analysis/scripts/1_anatomical_mri_autism_nt_v2.py
 (ttest_ind(a, b, equal_var=False); pooled-SD Cohen's d) -- per user decision,
 2026-08-30: no covariates in the test itself, for consistency with the
 primary analysis's test type. FDR-BH within each metric family (thickness_dk
@@ -40,7 +40,7 @@ then runs 11_age_bin_brain_grid.R, which composes every (metric x bin) panel
 into ONE figure -- rows = metric, columns = age bin, one shared Cohen's d
 colour scale.
 
-Output: outputs/figures/r_input_bin_<bin>/*.csv
+Output: outputs/tables/r_input_bin_<bin>/*.csv
         outputs/figures/composite/age_bin_groupdiff_all_features.pdf
 """
 import os
@@ -55,7 +55,7 @@ warnings.filterwarnings('ignore')
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _SECTION_DIR = os.path.dirname(_SCRIPT_DIR)
-FIG_DIR = os.path.join(_SECTION_DIR, 'outputs', 'figures')
+TABLES_DIR = os.path.join(_SECTION_DIR, 'outputs', 'tables')  # pure-table step: r_input_bin_* only
 R_GRID_SCRIPT = os.path.join(_SCRIPT_DIR, '11_age_bin_brain_grid.R')
 
 _spec = importlib.util.spec_from_file_location(
@@ -149,7 +149,7 @@ def main():
         n_aut, n_nt = int((g['diag'] == 'Autism').sum()), int((g['diag'] == 'NT').sum())
         print(f"\n[{b}] Autism={n_aut}  NT={n_nt}")
         res = run_bin(g, feats)
-        outdir = os.path.join(FIG_DIR, f'r_input_bin_{SAFE[b]}')
+        outdir = os.path.join(TABLES_DIR, f'r_input_bin_{SAFE[b]}')
         export(res, n_aut, n_nt, outdir)
 
     print("\nComposing per-metric grids (age bins as columns)...")

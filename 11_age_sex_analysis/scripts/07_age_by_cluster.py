@@ -13,7 +13,7 @@ from itertools import combinations
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-LABELS = ROOT / "1_clustering/outputs/curated/tables/individuals_metrics_with_clusters_curated.csv"
+LABELS = ROOT / "1_clustering/outputs/tables/individuals_metrics_with_clusters_curated.csv"
 OUT = Path(__file__).resolve().parents[1] / "outputs/tables"
 OUT.mkdir(parents=True, exist_ok=True)
 

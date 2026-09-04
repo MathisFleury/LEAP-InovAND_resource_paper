@@ -137,7 +137,7 @@ def main():
         na = int((a_sub['diag'] == 'Autism').sum()); nn = int((a_sub['diag'] == 'NT').sum())
         for model_name, res in a_res.items():
             res.to_csv(os.path.join(TABLES, f'interaction_anat_{model_name}_{name}.csv'), index=False)
-        export_ggseg(a_res, os.path.join(_FIG, f'r_input_{name}'), na, nn)
+        export_ggseg(a_res, os.path.join(TABLES, f'r_input_{name}'), na, nn)
 
     df = pd.DataFrame(rows)[
         ['subset', 'modality', 'interaction', 'n_features',

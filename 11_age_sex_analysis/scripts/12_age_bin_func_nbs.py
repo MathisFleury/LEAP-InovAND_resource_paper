@@ -27,9 +27,9 @@ model is
 fit via Frisch-Waugh-Lovell, reusing 02_func_nbs_interaction.py's
 residualise/partial_t/components/largest_component_size machinery with
 z = diag instead of a diag x modulator interaction regressor -- NOT the
-plain unadjusted Welch-t of 6_functional_analysis/scripts/07_nbs_test.py.
+plain unadjusted Welch-t of 6_functional_analysis/non_concat/scripts/07_nbs_test.py.
 
-Outputs (11_age_sex_analysis/outputs/nbs/):
+Outputs (11_age_sex_analysis/outputs/tables/nbs/):
   age_bin_nbs_<bin>_<sign>.csv         components + p_fwer + networks, per bin
   age_bin_nbs_edges_<bin>_<sign>.csv   edges of the top component, per bin
   age_bin_nbs_summary.csv              largest component + p_fwer per bin/sign
@@ -45,14 +45,14 @@ from scipy.stats import t as tdist
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
 _SECTION = _SCRIPT_DIR.parent
-OUT_DIR = _SECTION / 'outputs' / 'nbs'
+OUT_DIR = _SECTION / 'outputs' / 'tables' / 'nbs'  # pure-table step: no plots
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 _spec = importlib.util.spec_from_file_location('nbs02', _SCRIPT_DIR / '02_func_nbs_interaction.py')
 nbs = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(nbs)
 
-sys.path.insert(0, '/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource/6_functional_analysis/scripts')
+sys.path.insert(0, str(_SECTION.parent / '6_functional_analysis' / 'non_concat' / 'scripts'))
 from _sensitivity_utils import filter_connectivity_cols, ATLAS_FILE  # noqa: E402
 
 N_PERM = int(os.environ.get('N_PERM', '5000'))

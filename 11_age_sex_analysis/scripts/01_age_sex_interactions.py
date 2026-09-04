@@ -14,7 +14,7 @@ and keep the single interaction coefficient. p-values are FDR-corrected
 significance criterion used in the autism-vs-NT scripts. A feature "survives"
 if its interaction p_fdr < 0.05.
 
-Outputs (11_age_sex_analysis/outputs/):
+Outputs (11_age_sex_analysis/outputs/tables/):
   - interaction_<modality>_<model>.csv   per-feature betas/t/p/p_fdr
   - age_sex_interaction_summary.csv       one row per modality x model
 """
@@ -36,30 +36,32 @@ warnings.filterwarnings('ignore')
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _SECTION_DIR = os.path.dirname(_SCRIPT_DIR)
 OUTPUT_DIR = os.path.join(_SECTION_DIR, 'outputs')
+TABLES_DIR = os.path.join(OUTPUT_DIR, 'tables')
 Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+Path(TABLES_DIR).mkdir(parents=True, exist_ok=True)
 
 import sys
 import importlib.util
 
-# Reuse the curated anatomical pipeline's config + curated-clinical loader
-# (curated_clinical mirrors 1_clustering/scripts/04_run_clustering.py).
+# Reuse the anatomical pipeline's config + curated-clinical loader
+# (curated_clinical mirrors 1_clustering/scripts/4_run_clustering.py).
 os.environ.setdefault('CURATED_CLINICAL', '1')  # phenotype from curated clinical TSVs
 _CURATED_SCRIPTS = os.path.abspath(os.path.join(
-    _SECTION_DIR, '..', '4_anatomical_analysis', 'curated', 'scripts'))
+    _SECTION_DIR, '..', '4_anatomical_analysis', 'scripts'))
 sys.path.insert(0, _CURATED_SCRIPTS)
 import _config          # shared paths: MRI_FILE = anat input
 import curated_clinical  # curated per-cohort clinical TSVs (population_group/age/sex)
 
-# curated pipeline's script 01 (module name starts with a digit -> importlib):
+# anatomical pipeline's script 1 (module name starts with a digit -> importlib):
 # reuse its FreeSurfer column rename, wave dedup, and canonical join-key helpers.
 _spec = importlib.util.spec_from_file_location(
-    'anat01', os.path.join(_CURATED_SCRIPTS, '01_anatomical_mri_autism_nt_v2.py'))
+    'anat01', os.path.join(_CURATED_SCRIPTS, '1_anatomical_mri_autism_nt_v2.py'))
 anat01 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(anat01)
 
 MRI_FILE = _config.MRI_FILE
 
-LIB = '/Users/mfleury/POSTDOC/LIBRAIRY'
+LIB = os.path.normpath(os.path.join(_SECTION_DIR, '..', '..'))
 ANAT_FILE = MRI_FILE
 
 # Age-bin robustness check only (09/10): ComBat + regression identical to
@@ -73,18 +75,19 @@ NOAGE_ANAT_FILE = os.path.join(os.path.dirname(MRI_FILE),
                                 'freesurfer_zscore_qc1_combat_regress_noage.tsv')
 
 # Must match the manuscript's primary rsfMRI pipeline: the run-concatenated
-# (>6 min), no-GSR connectivity table in 6-2_functional_analysis (verified
+# (>6 min), no-GSR connectivity table in 6_functional_analysis/concat (verified
 # n=393 autism/327 NT, exactly the reported whole-cohort N) -- NOT
-# 6_functional_analysis's df_conn_cohort_norm.csv (an older, non-concatenated
-# table with a different sample, 355/295), which this pointed to previously.
-FUNC_FILE = os.path.join(LIB, 'LEAP-InovAND_resource', '6-2_functional_analysis',
+# 6_functional_analysis/non_concat's df_conn_cohort_norm.csv (an older,
+# non-concatenated table with a different sample, 355/295), which this
+# pointed to previously.
+FUNC_FILE = os.path.join(LIB, 'LEAP-InovAND_resource', '6_functional_analysis', 'concat',
                          'preprocessing', 'outputs', 'nogsr_concat',
                          'df_conn_cohort_norm_nogsr_concat.csv')
 
 # Phenotype/demographics for the ANAT models: the curated concat (population_group,
 # age_yrs, Sex, cohort) written by 1_clustering curated pipeline.
 CLINICAL_FILE = os.path.join(
-    LIB, 'LEAP-InovAND_resource', '1_clustering', 'outputs', 'curated', 'tables',
+    LIB, 'LEAP-InovAND_resource', '1_clustering', 'outputs', 'tables',
     'individuals_metrics_with_clusters_curated_ward.csv')
 
 FDR_ALPHA = 0.05
@@ -165,7 +168,7 @@ def run_models(df, feature_cols, modality, family_of=None, cov_of=None):
             n_sig_unc = n_sig_fdr = 0
             min_p = min_pfdr = max_abs_d = float('nan')
 
-        out = os.path.join(OUTPUT_DIR, f"interaction_{modality}_{model_name}.csv")
+        out = os.path.join(TABLES_DIR, f"interaction_{modality}_{model_name}.csv")
         res_df.to_csv(out, index=False)
         results[model_name] = res_df
         print(f"  [{modality}/{model_name}] features={len(res_df)}  "
@@ -279,7 +282,7 @@ def _ggseg_label(feat):
 def export_anat_ggseg_inputs(results, n_autism, n_nt):
     """Per (model, metric, atlas) CSV in the format 03_plot_*.R expects:
     headerless label,t_stat,p_val,cohens_d,p_fdr; FDR recomputed within metric."""
-    rdir = os.path.join(OUTPUT_DIR, 'figures', 'r_input_files')
+    rdir = os.path.join(OUTPUT_DIR, 'tables', 'r_input_files')
     Path(rdir).mkdir(parents=True, exist_ok=True)
     pd.DataFrame([{'n_autism': n_autism, 'n_nt': n_nt}]).to_csv(
         os.path.join(rdir, 'group_counts.csv'), index=False)
@@ -346,7 +349,7 @@ def main():
     summaries += func_sum
 
     df_sum = pd.DataFrame(summaries)
-    out = os.path.join(OUTPUT_DIR, 'age_sex_interaction_summary.csv')
+    out = os.path.join(TABLES_DIR, 'age_sex_interaction_summary.csv')
     df_sum.to_csv(out, index=False)
     print("\n" + "=" * 60)
     print("SUMMARY")

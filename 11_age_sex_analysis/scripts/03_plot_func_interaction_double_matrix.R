@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # =============================================================================
 # Double network matrix of the NBS interaction component (functional).
-# Adapts 6_functional_analysis/scripts/05_plot_double_network_matrix.R to the
+# Adapts 6_functional_analysis/non_concat/scripts/05_plot_double_network_matrix.R to the
 # diagnosis x age / x sex interaction components written by 02_func_nbs_interaction.py.
 #   upper-left triangle (+diag) = raw edge COUNT      (left colorbar)
 #   lower-right triangle        = normalised PROPORTION (right colorbar)
@@ -17,7 +17,11 @@ ATLAS_FILE <- "/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/ressources/atlas
 args <- commandArgs(trailingOnly = FALSE)
 sp <- sub("--file=", "", args[grep("--file=", args)])
 script_dir <- if (length(sp) == 0) getwd() else dirname(normalizePath(sp))
-IO_DIR <- file.path(dirname(script_dir), "outputs", "nbs")
+section_dir <- dirname(script_dir)
+TABLES_DIR <- file.path(section_dir, "outputs", "tables", "nbs")   # reads 02's edges, writes count matrix
+FIGURES_DIR <- file.path(section_dir, "outputs", "figures", "nbs") # writes the double-matrix PDF
+dir.create(TABLES_DIR, showWarnings = FALSE, recursive = TRUE)
+dir.create(FIGURES_DIR, showWarnings = FALSE, recursive = TRUE)
 
 NET_ORDER <- c("Amyg. & Hippoc.", "Striatum", "Cerebellum", "Thalamus",
                "Default", "Cont", "Limbic", "SalVentAttn", "DorsAttn", "SomMot", "Vis")
@@ -54,7 +58,7 @@ build_count_matrix <- function(df) {
 }
 
 plot_double <- function(model, sign) {
-  fp <- file.path(IO_DIR, sprintf("interaction_edges_%s_%s.csv", model, sign))
+  fp <- file.path(TABLES_DIR, sprintf("interaction_edges_%s_%s.csv", model, sign))
   if (!file.exists(fp)) { cat("Missing:", fp, "\n"); return(invisible()) }
   df <- read_csv(fp, show_col_types = FALSE)
   if (nrow(df) == 0) { cat("Empty (no component):", basename(fp), "\n"); return(invisible()) }
@@ -95,11 +99,11 @@ plot_double <- function(model, sign) {
   combined <- plot_grid(title, plot_grid(p_count, p_prop, nrow = 1, align = "h"),
                         ncol = 1, rel_heights = c(0.08, 1))
 
-  out <- file.path(IO_DIR, sprintf("interaction_double_matrix_%s_%s.pdf", model, sign))
+  out <- file.path(FIGURES_DIR, sprintf("interaction_double_matrix_%s_%s.pdf", model, sign))
   ggsave(out, combined, width = 15, height = 7.5)
-  write.csv(cnt, file.path(IO_DIR, sprintf("interaction_count_matrix_%s_%s.csv", model, sign)))
+  write.csv(cnt, file.path(TABLES_DIR, sprintf("interaction_count_matrix_%s_%s.csv", model, sign)))
   cat("Saved:", basename(out), sprintf("(%d edges)\n", nrow(df)))
 }
 
-cat("Interaction double matrix — dir:", IO_DIR, "\n")
+cat("Interaction double matrix — tables:", TABLES_DIR, " figures:", FIGURES_DIR, "\n")
 for (m in c("age", "sex")) for (s in c("pos", "neg")) plot_double(m, s)

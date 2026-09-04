@@ -4,12 +4,12 @@
 # metric (Cortical Thickness / Surface Area / Cortical Volume / Subcortical
 # Volume), columns = age bin. Fill = Cohen's d (group effect, cohort[+sex]-
 # adjusted), FDR<0.05 outlined; one shared colour scale + legend for the
-# whole grid (pattern matches 4_anatomical_analysis/curated's
+# whole grid (pattern matches 4_anatomical_analysis's
 # 21_supp_brain_grid.R). Bin/N labels appear once, on the top row.
 #
 # Reads the per-bin ggseg-input CSVs written by 10_age_bin_brain_maps.py:
-#   outputs/figures/r_input_bin_<bin>/t_stat_anat_<atlas>_<metric>_interaction_groupdiff.csv
-#   outputs/figures/r_input_bin_<bin>/group_counts.csv
+#   outputs/tables/r_input_bin_<bin>/t_stat_anat_<atlas>_<metric>_interaction_groupdiff.csv
+#   outputs/tables/r_input_bin_<bin>/group_counts.csv
 # Output: outputs/figures/composite/age_bin_groupdiff_all_features.pdf
 # =============================================================================
 suppressPackageStartupMessages({
@@ -21,6 +21,7 @@ args <- commandArgs(trailingOnly = FALSE)
 sp <- sub("--file=", "", args[grep("--file=", args)])
 script_dir <- if (length(sp) == 0) getwd() else dirname(normalizePath(sp))
 fig_dir <- file.path(dirname(script_dir), "outputs", "figures")
+tables_dir <- file.path(dirname(script_dir), "outputs", "tables")
 output_dir <- file.path(fig_dir, "composite")
 if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
@@ -45,7 +46,7 @@ aseg_label <- function(df) df %>% dplyr::mutate(label = dplyr::recode(label,
   "3rd-Ventricle" = "x3rd-ventricle", "4th-Ventricle" = "x4th-ventricle"))
 
 load_bin <- function(bin_key, atlas_type, metric) {
-  bindir <- file.path(fig_dir, sprintf("r_input_bin_%s", bin_key))
+  bindir <- file.path(tables_dir, sprintf("r_input_bin_%s", bin_key))
   fp <- file.path(bindir, sprintf("t_stat_anat_%s_%s_interaction_groupdiff.csv", atlas_type, metric))
   if (!file.exists(fp)) { warning(paste("missing", fp)); return(NULL) }
   d <- read.csv(fp, header = FALSE, col.names = c("label", "t_stat", "p_val", "cohens_d", "p_fdr"),

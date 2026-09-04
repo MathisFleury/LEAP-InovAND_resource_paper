@@ -8,7 +8,7 @@
 # Fill = interaction t-statistic (RdBu diverging); FDR<0.05 ROIs outlined in
 # black. Adapted from ../../4_anatomical_analysis/scripts/13_combined_brain_figure.R
 # for the interaction CSVs written by 01_age_sex_interactions.py
-#   outputs/figures/r_input_files/t_stat_anat_<atlas>_<metric>_interaction_<model>.csv
+#   outputs/tables/r_input_files/t_stat_anat_<atlas>_<metric>_interaction_<model>.csv
 #   (headerless: label, t_stat, p_val, cohens_d, p_fdr)
 # Output: outputs/figures/combined_interaction_brain_maps_<model>.pdf
 # =============================================================================
@@ -23,7 +23,7 @@ script_path <- sub("--file=", "", args[grep("--file=", args)])
 script_dir  <- if (length(script_path) == 0) getwd() else dirname(normalizePath(script_path))
 section_dir <- dirname(script_dir)
 
-input_dir  <- file.path(section_dir, "outputs", "figures", "r_input_files")
+input_dir  <- file.path(section_dir, "outputs", "tables", "r_input_files")
 output_dir <- file.path(section_dir, "outputs", "figures")
 
 n_suffix <- ""

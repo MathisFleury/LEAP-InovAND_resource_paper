@@ -3,7 +3,7 @@
 # ggseg brain maps of the diagnosis x age / x sex interaction t-statistics.
 # Adapts 4_anatomical_analysis/scripts/03_plot_anatomical_mri_brain_visualizations.R
 # Reads the per-metric interaction CSVs written by 01_age_sex_interactions.py
-#   outputs/figures/r_input_files/t_stat_anat_<atlas>_<metric>_interaction_<model>.csv
+#   outputs/tables/r_input_files/t_stat_anat_<atlas>_<metric>_interaction_<model>.csv
 # One ggseg map per (model, metric); FDR<0.05 regions outlined (none expected).
 # =============================================================================
 suppressPackageStartupMessages({
@@ -26,7 +26,7 @@ script_dir <- if (length(sp) == 0) getwd() else dirname(normalizePath(sp))
 # R_INPUT_DIR / OUT_TAG let a caller point at a subset's inputs and tag outputs
 # (e.g. the age-5-22 / age-matched sensitivity subsets).
 input_dir <- Sys.getenv("R_INPUT_DIR",
-  file.path(dirname(script_dir), "outputs", "figures", "r_input_files"))
+  file.path(dirname(script_dir), "outputs", "tables", "r_input_files"))
 output_dir <- file.path(dirname(script_dir), "outputs", "figures")
 out_tag <- Sys.getenv("OUT_TAG", "")
 if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)

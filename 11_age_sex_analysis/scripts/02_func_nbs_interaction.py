@@ -5,7 +5,7 @@ interactions in functional connectivity.
 
 Edge-level FDR over 10,731 edges is underpowered for an interaction, so this
 runs a component-level, FWER-controlled test instead — the same NBS machinery
-as 6_functional_analysis/scripts/07_nbs_test.py, but the per-edge statistic is
+as 6_functional_analysis/non_concat/scripts/07_nbs_test.py, but the per-edge statistic is
 the *interaction* t from the model
 
     y ~ diag + age_c + Sex + cohort + diag:<modulator>        (modulator = age_c or Sex)
@@ -23,7 +23,7 @@ across all edges, so N_PERM permutations cost one matrix-vector product each.
   3. permute z_perp (N_PERM); keep largest component size per sign -> null max.
   4. FWER p per observed component = P(null max >= observed size).
 
-Outputs (11_age_sex_analysis/outputs/nbs/):
+Outputs (11_age_sex_analysis/outputs/tables/nbs/):
   nbs_interaction_<model>_<sign>.csv     components + p_fwer + networks
   nbs_interaction_summary.csv            largest component + p_fwer per model/sign
 """
@@ -37,23 +37,25 @@ from scipy.stats import t as tdist
 from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 
-_FUNC_SCRIPTS = '/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource/6_functional_analysis/scripts'
+_SECTION = Path(__file__).resolve().parent.parent
+_ROOT = _SECTION.parent
+
+_FUNC_SCRIPTS = str(_ROOT / '6_functional_analysis' / 'non_concat' / 'scripts')
 sys.path.insert(0, _FUNC_SCRIPTS)
 from _sensitivity_utils import filter_connectivity_cols, ATLAS_FILE  # noqa: E402
 
-_SECTION = Path(__file__).resolve().parent.parent
 # Must match the manuscript's primary rsfMRI pipeline (verified against
-# 6-2_functional_analysis/scripts/03_nbs_test.py and
+# 6_functional_analysis/concat/scripts/03_nbs_test.py and
 # 7_cluster_functional_analysis/scripts/06_cluster_nbs.py, both run against
 # this exact file for the reported whole-cohort/cluster NBS results: n=393
 # autism/327 NT, matching the manuscript). Previously pointed at
-# 6_functional_analysis's df_conn_cohort_norm.csv -- an older, non-run-
-# concatenated table with a different sample (355/295) -- which was wrong.
+# 6_functional_analysis/non_concat's df_conn_cohort_norm.csv -- an older,
+# non-run-concatenated table with a different sample (355/295) -- which was wrong.
 FMRI_FILE = Path(os.environ.get(
     'AUTISM_TD_FMRI_CSV',
-    '/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource/6-2_functional_analysis'
-    '/preprocessing/outputs/nogsr_concat/df_conn_cohort_norm_nogsr_concat.csv'))
-OUT_DIR = _SECTION / 'outputs' / 'nbs'
+    str(_ROOT / '6_functional_analysis' / 'concat' / 'preprocessing' / 'outputs'
+        / 'nogsr_concat' / 'df_conn_cohort_norm_nogsr_concat.csv')))
+OUT_DIR = _SECTION / 'outputs' / 'tables' / 'nbs'  # pure-table step: no plots
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 N_PERM = int(os.environ.get('N_PERM', '5000'))
 NBS_P = float(os.environ.get('NBS_P', '0.01'))   # primary edge-forming threshold

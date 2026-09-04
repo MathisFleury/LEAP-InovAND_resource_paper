@@ -1,20 +1,21 @@
 # =============================================================================
-# 4_anatomical_analysis/curated config — thin layer over the project config.py
+# 4_anatomical_analysis config — thin layer over the project config.py
 # =============================================================================
 # Shared constants (MRI table, v4 carrier file, AUTISM_ONLY / N_PERM / SEED)
 # come from the root config.py. Only the env-driven, section-local bits
 # (output base, cluster roster, curated-clinical toggle) stay here.
 #
-# Used by: 01_anatomical_mri_autism_nt_v2.py, 05_loeuf_mri_correlations_hg38_v2.py,
-#          08_loeuf_mri_regression_permutation_v2.py.
+# Used by: 1_anatomical_mri_autism_nt_v2.py, 5_loeuf_mri_correlations_hg38_v2.py,
+#          8_loeuf_mri_regression_permutation_v2.py, and (transitively, via
+#          sys.path + dynamic import) 11_age_sex_analysis/scripts/01_age_sex_interactions.py.
 # =============================================================================
 
 import os
 import sys
 
 _script_dir  = os.path.dirname(os.path.abspath(__file__))
-_section_dir = os.path.normpath(os.path.join(_script_dir, ".."))              # .../curated
-_project_dir = os.path.normpath(os.path.join(_script_dir, "..", "..", ".."))  # LEAP-InovAND_resource
+_section_dir = os.path.normpath(os.path.join(_script_dir, ".."))         # 4_anatomical_analysis/
+_project_dir = os.path.normpath(os.path.join(_script_dir, "..", ".."))   # LEAP-InovAND_resource
 if _project_dir not in sys.path:
     sys.path.insert(0, _project_dir)
 
@@ -33,6 +34,6 @@ DF_CLUSTERS_FILE = os.environ.get("CLUSTER_FILE", CLUSTERS_KMEANS_FROZEN)
 GENETIC_ROSTER = CLUSTERS_KMEANS_FROZEN
 
 # When True, 01 loads curated per-cohort clinical TSVs instead of DF_CLUSTERS_FILE.
-# Curated is the priority regime (see CLAUDE.md), so default ON; set
-# CURATED_CLINICAL=0 to reproduce the frozen paper roster.
+# Curated is the priority regime, so default ON; set CURATED_CLINICAL=0 to
+# reproduce the frozen paper roster.
 CURATED_CLINICAL = os.environ.get("CURATED_CLINICAL", "1") == "1"

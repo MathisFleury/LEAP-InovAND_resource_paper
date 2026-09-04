@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Anatomical MRI Analysis Pipeline — curated (v2)
+Anatomical MRI Analysis Pipeline (current, priority regime)
 
 Runs the v2 anatomical pipeline rebuilt on the QC + ComBat +
 age/sex/eTIV-regressed FreeSurfer table, with LEAP_W1 / INOVAND_T1
-wave selection (see 01_anatomical_mri_autism_nt_v2.py for details).
+wave selection (see 1_anatomical_mri_autism_nt_v2.py for details).
 
 Steps:
   1. Autism vs NT contrasts — t / Cohen's d / FDR per region.
@@ -55,27 +55,27 @@ def run_script(script_path: Path, description: str) -> bool:
 
 
 def main() -> bool:
-    print("Anatomical MRI Analysis Pipeline — curated (v2)")
+    print("Anatomical MRI Analysis Pipeline (current, priority regime)")
     print("=" * 60)
 
     steps = [
-        (_SCRIPT_DIR / "01_anatomical_mri_autism_nt_v2.py",
+        (_SCRIPT_DIR / "1_anatomical_mri_autism_nt_v2.py",
          "Autism vs NT — t / Cohen's d / FDR", True),
-        (_SCRIPT_DIR / "02_plot_anatomical_mri_brain_v2.R",
+        (_SCRIPT_DIR / "2_plot_anatomical_mri_brain_v2.R",
          "Cortical brain maps (ggseg, Cohen's d)", False),
-        (_SCRIPT_DIR / "07_combined_brain_figure_v2.R",
+        (_SCRIPT_DIR / "7_combined_brain_figure_v2.R",
          "Combined single-page brain figure (4 features, FDR, ROI labels)", False),
-        (_SCRIPT_DIR / "03_plot_subcortical_yabplot_v2.py",
+        (_SCRIPT_DIR / "3_plot_subcortical_yabplot_v2.py",
          "Subcortical brain map (yabplot, Cohen's d)", False),
-        (_SCRIPT_DIR / "04_euler_by_population.py",
+        (_SCRIPT_DIR / "4_euler_by_population.py",
          "Euler number by population (QC summary)", False),
-        (_SCRIPT_DIR / "05_loeuf_mri_correlations_hg38_v2.py",
+        (_SCRIPT_DIR / "5_loeuf_mri_correlations_hg38_v2.py",
          "LOEUF (v4) × MRI Pearson correlations (per pathway×feature FDR)", False),
-        (_SCRIPT_DIR / "06_loeuf_mri_brain_maps_hg38_v2.R",
+        (_SCRIPT_DIR / "6_loeuf_mri_brain_maps_hg38_v2.R",
          "LOEUF (v4) correlation brain maps (per-pathway combined figure)", False),
-        (_SCRIPT_DIR / "08_loeuf_mri_regression_permutation_v2.py",
+        (_SCRIPT_DIR / "8_loeuf_mri_regression_permutation_v2.py",
          "LOEUF (v4) × MRI OLS β + permutation (gene-list-specific null)", False),
-        (_SCRIPT_DIR / "09_loeuf_combined_brain_figure_v2.R",
+        (_SCRIPT_DIR / "9_loeuf_combined_brain_figure_v2.R",
          "LOEUF (v4) regression β brain maps (per-pathway, perm p<0.05)", False),
         (_SCRIPT_DIR / "10_beta_coefficients_roi_v2.py",
          "Per-ROI beta-coefficient figures (LOEUF x MRI, hg38 regperm)", False),

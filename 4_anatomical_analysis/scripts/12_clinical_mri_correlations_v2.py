@@ -27,8 +27,8 @@ from scipy.stats import pearsonr, zscore
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from importlib import import_module
-_m05 = import_module("05_loeuf_mri_correlations_hg38_v2")
-_mod01 = import_module("01_anatomical_mri_autism_nt_v2")
+_m05 = import_module("5_loeuf_mri_correlations_hg38_v2")
+_mod01 = import_module("1_anatomical_mri_autism_nt_v2")
 import _config  # noqa: E402
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 import config as root_config  # noqa: E402  (for the curated cluster table)

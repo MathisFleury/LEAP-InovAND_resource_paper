@@ -3,12 +3,12 @@
 # LOEUF (hg38) vs MRI Brain Maps (ggseg) — REVISION
 # =============================================================================
 # Combined single-page figure PER pathway, matching the layout of
-# 09_loeuf_combined_brain_figure_v2.R (itself adapted from 07/13). Each figure
+# 9_loeuf_combined_brain_figure_v2.R (itself adapted from 07/13). Each figure
 # is a single column of four stacked ggseg maps:
 #   Cortical Thickness | Surface Area | Cortical Volume | Subcortical Volumes
 #
 # Consumes the per-pathway x per-feature stats written by
-# 05_loeuf_mri_correlations_hg38_v2.py (Pearson r + BH-FDR within each file).
+# 5_loeuf_mri_correlations_hg38_v2.py (Pearson r + BH-FDR within each file).
 #   Fill    = Pearson correlation (-log10 LOEUF vs MRI metric)
 #   Outline = FDR q < 0.05 (black), per pathway x feature
 #

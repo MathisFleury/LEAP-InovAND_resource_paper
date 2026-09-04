@@ -17,7 +17,7 @@ directly against the reported group-difference effect sizes (|d| ~ 0.2-0.6)
 rather than living on a different (correlation) scale.
 
 Outputs ggseg-input CSVs in the same 5-column format
-02_plot_anatomical_mri_brain_v2.R already reads (label, t_stat, p_val,
+2_plot_anatomical_mri_brain_v2.R already reads (label, t_stat, p_val,
 cohens_d, p_fdr) -- `cohens_d` holds this converted value (so ggseg colors by
 it) and `p_fdr` holds the ORIGINAL group-difference BONFERRONI-corrected p
 (`p_bonf`, not `p_fdr` -- confirmed via R4.4 of the reviewer response: the
@@ -41,7 +41,7 @@ import pandas as pd
 from scipy.stats import pearsonr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-_m01 = import_module("01_anatomical_mri_autism_nt_v2")
+_m01 = import_module("1_anatomical_mri_autism_nt_v2")
 
 _SECTION = Path(__file__).resolve().parent.parent
 RINPUT = _SECTION / "outputs" / "figures" / "r_input_files"

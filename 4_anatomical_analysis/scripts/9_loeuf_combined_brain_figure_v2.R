@@ -3,7 +3,7 @@
 # =============================================================================
 # Template adapted from 07/13_combined_brain_figure.R (Autism vs NT) for the
 # LOEUF regression + permutation outputs of
-# 08_loeuf_mri_regression_permutation_v2.py.
+# 8_loeuf_mri_regression_permutation_v2.py.
 #
 # One figure per gene set (Protein coding / SynGO / ChromEpiTF); each is a
 # single column of four stacked ggseg maps:

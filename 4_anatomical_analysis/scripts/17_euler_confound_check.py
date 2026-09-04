@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind, pearsonr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-_m01 = import_module("01_anatomical_mri_autism_nt_v2")
+_m01 = import_module("1_anatomical_mri_autism_nt_v2")
 import _config  # noqa: E402
 
 _SECTION = Path(__file__).resolve().parent.parent
@@ -43,7 +43,7 @@ RINPUT = _SECTION / "outputs" / "figures" / "r_input_files"
 OUT = _SECTION / "outputs" / "figures" / "qc_euler"
 OUT.mkdir(parents=True, exist_ok=True)
 CURATED = Path("/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource/"
-               "1_clustering/outputs/curated/tables/individuals_metrics_with_clusters_curated.csv")
+               "1_clustering/outputs/tables/individuals_metrics_with_clusters_curated.csv")
 
 POP_REMAP = {"Autism to exclude": "Autism without IDD", "Autism": "Autism without IDD"}
 GROUPS = ["NT", "Relatives", "IDD", "Autism without IDD", "Autism with IDD"]

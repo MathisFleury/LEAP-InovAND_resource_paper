@@ -4,7 +4,7 @@
 #
 # v2 of ../../scripts/03_plot_anatomical_mri_brain_visualizations.R, using
 # the QC+ComBat+regression FreeSurfer dataset (LEAP_W1 / INOVAND_T1 priority)
-# produced by 01_anatomical_mri_autism_nt_v2.py.
+# produced by 1_anatomical_mri_autism_nt_v2.py.
 #
 # Fill: Cohen's d (same convention as the cluster v2 plots).
 # Scale: fixed [-0.4, 0.4] across thickness / area / volume for direct

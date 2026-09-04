@@ -8,7 +8,7 @@ QC + ComBat + age/sex/eTIV-regression z-scored FreeSurfer table:
   /Volumes/Imaging5/EEG_MRI-MF/ALL/results/tabular/anat/
       z_scoring_qc+combat+regression_ndd/output/freesurfer_zscore_qc1_combat_regress.tsv
 
-Conventions match the 5_cluster_anatomical_analysis/curated pipeline:
+Conventions match the 5_cluster_anatomical_analysis pipeline:
 - Wave selection: one row per subject. LEAP prefers W1 → W2 → W3; INOVAND
   prefers T1 → T2; other cohorts deduped by ID.
 - Phenotype labels come from
@@ -49,7 +49,7 @@ MRI_FILE = _config.MRI_FILE
 DF_CLUSTERS_FILE = _config.DF_CLUSTERS_FILE
 
 _SCRIPT_DIR = Path(__file__).parent
-_SECTION_DIR = _SCRIPT_DIR.parent  # 4_anatomical_analysis/curated/
+_SECTION_DIR = _SCRIPT_DIR.parent  # 4_anatomical_analysis/
 R_INPUT_DIR = _SECTION_DIR / "outputs" / "figures" / "r_input_files"
 TABLES_DIR = _SECTION_DIR / "outputs" / "tables"
 
@@ -83,7 +83,7 @@ WAVE_PRIORITY = {
 
 
 # =============================================================================
-# LOADERS — identical to 5_cluster_anatomical_analysis/curated/scripts/...
+# LOADERS — identical to 5_cluster_anatomical_analysis/scripts/...
 # =============================================================================
 def _rename_freesurfer_cols(df: pd.DataFrame) -> pd.DataFrame:
     rename = {}

@@ -5,7 +5,7 @@
 # Publication-ready gt tables (t, p, q, Cohen's d; Left/Right side by side) for
 #   - cortical thickness   - surface area   - subcortical volume
 # Recomputed on the revised regressed FreeSurfer + curated clinical (autism vs
-# NT), i.e. the per-region stats written by 01_anatomical_mri_autism_nt_v2.py
+# NT), i.e. the per-region stats written by 1_anatomical_mri_autism_nt_v2.py
 # (run with CURATED_CLINICAL=1). Adapted from
 # eeg_mri-pipeline/.../tables_creation/gt_table_anat_creation.R.
 #

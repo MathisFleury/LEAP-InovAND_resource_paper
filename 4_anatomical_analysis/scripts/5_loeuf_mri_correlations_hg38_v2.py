@@ -2,12 +2,12 @@
 """
 LOEUF (hg38) × MRI correlation statistics — REVISION
 
-Produces the stats CSV consumed by 06_loeuf_mri_brain_maps_hg38_v2.R.
+Produces the stats CSV consumed by 6_loeuf_mri_brain_maps_hg38_v2.R.
 Mirrors the hg38 path of ../../4_anatomical_analysis/scripts/11_loeuf_mri_interaction.py
 but uses the curated MRI table (QC + ComBat + age/sex/eTIV-regression z-scored)
-and the curated-pipeline loader/wave-selection logic from 01_anatomical_mri_autism_nt_v2.py.
+and the curated-pipeline loader/wave-selection logic from 1_anatomical_mri_autism_nt_v2.py.
 
-Input MRI : the curated MRI table (resolved from 01_anatomical_mri_autism_nt_v2)
+Input MRI : the curated MRI table (resolved from 1_anatomical_mri_autism_nt_v2)
 Input gen : df_carrier_genelist_DEL_LOF_MISS_withalphamissense_LOEUF_gnomadv4.tsv
 Joining   : curated MRI → df_clusters_complete (canonical join keys) →
             ID → merge on carrier_annotations_hg38.tsv
@@ -28,14 +28,14 @@ from statsmodels.stats.multitest import multipletests
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from importlib import import_module
-_mod01 = import_module("01_anatomical_mri_autism_nt_v2")  # noqa: E402
+_mod01 = import_module("1_anatomical_mri_autism_nt_v2")  # noqa: E402
 import _config  # noqa: E402  shared paths + hyperparameters (see _config.py)
 
 # =============================================================================
 # PATHS / PARAMS (centralised in _config.py)
 # =============================================================================
 _SCRIPT_DIR  = Path(__file__).resolve().parent
-_SECTION_DIR = _SCRIPT_DIR.parent                      # 4_anatomical_analysis/curated
+_SECTION_DIR = _SCRIPT_DIR.parent                      # 4_anatomical_analysis/
 
 CARRIER_HG38   = Path(_config.CARRIER_V4)       # gnomAD v4 carrier table
 GENETIC_ROSTER = Path(_config.GENETIC_ROSTER)   # genetics<->MRI bridge (paper IDs)
@@ -52,10 +52,10 @@ GENE_LISTS_HG38_ALL = [
     ("dellof_chromepitf_best_score_hg38", "CHROM delloF", "#8E44AD"),
 ]
 
-# Subcortical ROIs: reuse the canonical set from 01_anatomical_mri_autism_nt_v2
+# Subcortical ROIs: reuse the canonical set from 1_anatomical_mri_autism_nt_v2
 # (ASEG_REGIONS). Labels in the CSV match those produced by 01 (e.g.
 # "Left-Thalamus", "CC_Anterior") so the R script can reuse the existing
-# rename_subcortical_labels() helper from 02_plot_anatomical_mri_brain_v2.R.
+# rename_subcortical_labels() helper from 2_plot_anatomical_mri_brain_v2.R.
 SUBCORTICAL_COLS = list(_mod01.ASEG_REGIONS)
 
 # (new_col, lof_col, del_col) — min ignoring NaN
@@ -209,7 +209,7 @@ def run_correlations(df: pd.DataFrame, gene_lists, ct_cols, sc_cols, label: str)
     if df_s.empty:
         return df_s
     # FDR PER PANEL (one ggseg facet = one genetic_feature × one mri_type).
-    # Matches the pooling used by 06_loeuf_mri_brain_maps_hg38_v2.R so the
+    # Matches the pooling used by 6_loeuf_mri_brain_maps_hg38_v2.R so the
     # `p_fdr` column in this CSV equals what's plotted.
     df_s["p_fdr"] = np.nan
     for _, sub in df_s.groupby(["genetic_feature", "mri_type"]):

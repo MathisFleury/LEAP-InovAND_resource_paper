@@ -3,7 +3,7 @@
 Curated clinical loader for the curated-pipeline anatomical scripts.
 
 Mirrors the curated-clinical loading in
-1_clustering/scripts/04_run_clustering.py (load_all_cohorts): merges the
+1_clustering/scripts/1_run_clustering.py (load_all_cohorts): merges the
 per-cohort curated clinical TSVs — LEAP (T1->T2->T3 backfill), INOVAND, INFOR —
 collapsing INFOR into INOVAND, normalising PopulationS1 and MRI_ID, deduping by
 ID. Returns one row per ID carrying ID / MRI_ID / cohort / PopulationS1 /

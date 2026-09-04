@@ -12,7 +12,7 @@ main title + "Gene List" x-title dropped, legend dropped (x-ticks carry the labe
 
 Prereqs (run first):
   Rscript 20_thickness_maps_for_composite.R
-  Rscript ../../10_clinical_analysis/scripts/04e_plot_iq_srs_cluster_reframe.R
+  (from repo root) Rscript 10_clinical_analysis/scripts/04e_plot_iq_srs_cluster_reframe.R
 
 Run:  python3 19_build_composite.py
 """
@@ -33,7 +33,7 @@ TABLES = Path(_config.OUTPUT_BASE) / "tables_genetics_hg38_regperm"
 COMP   = Path(_config.OUTPUT_BASE) / "figures_genetics_hg38_regperm" / "composite"
 COMP.mkdir(parents=True, exist_ok=True)
 
-PANEL_C = (Path(__file__).resolve().parents[3] / "10_clinical_analysis" / "outputs"
+PANEL_C = (Path(__file__).resolve().parents[2] / "10_clinical_analysis" / "outputs"
            / "figures" / "figure_IQ_SRS_cluster_loeuf_reframe.pdf")
 
 CM = 28.3465  # pt per cm

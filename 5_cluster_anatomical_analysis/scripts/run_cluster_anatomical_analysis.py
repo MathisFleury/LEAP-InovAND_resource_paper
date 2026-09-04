@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Cluster Anatomical MRI Analysis Pipeline — curated (v2)
+Cluster Anatomical MRI Analysis Pipeline — curated
 
-Runs the v2 per-cluster anatomical pipeline rebuilt on the QC + ComBat +
+Runs the per-cluster anatomical pipeline on the QC + ComBat +
 age/sex/eTIV-regressed FreeSurfer table, with LEAP_W1 / INOVAND_T1 wave
-selection (see 01_generate_cluster_mri_inputs_v2.py for details).
+selection (see 1_generate_cluster_mri_inputs.py for details).
 
 Steps:
   1. Per-cluster MRI inputs — CT / SA / subcortical contrasts vs pooled
@@ -36,7 +36,7 @@ def run_script(script_path: Path, description: str) -> bool:
     try:
         if script_path.suffix == ".py":
             cmd = [sys.executable, str(script_path)]
-            if ARGS.nt_c1 and script_path.name.startswith("01_"):
+            if ARGS.nt_c1 and script_path.name.startswith("1_"):
                 cmd.append("--nt-c1")
         elif script_path.suffix == ".R":
             cmd = ["Rscript", str(script_path)]
@@ -55,23 +55,23 @@ def run_script(script_path: Path, description: str) -> bool:
 
 
 def main() -> bool:
-    print("Cluster Anatomical MRI Analysis Pipeline — curated (v2)")
+    print("Cluster Anatomical MRI Analysis Pipeline — curated")
     print("=" * 60)
 
     steps = [
-        (_SCRIPT_DIR / "01_generate_cluster_mri_inputs_v2.py",
+        (_SCRIPT_DIR / "1_generate_cluster_mri_inputs.py",
          "Per-cluster MRI inputs — Cohen's d / FDR", True),
-        (_SCRIPT_DIR / "02_plot_cluster_mri_brain_v2.R",
+        (_SCRIPT_DIR / "2_plot_cluster_mri_brain.R",
          "Cortical brain maps (ggseg, Cohen's d)", False),
-        (_SCRIPT_DIR / "04_combined_cluster_brain_figure_v2.R",
+        (_SCRIPT_DIR / "4_combined_cluster_brain_figure.R",
          "Combined single-page cluster brain figure (per cluster, FDR)", False),
-        (_SCRIPT_DIR / "03_plot_subcortical_cluster_yabplot_v2.py",
+        (_SCRIPT_DIR / "3_plot_subcortical_cluster_yabplot.py",
          "Subcortical brain map (yabplot, Cohen's d)", False),
-        (_SCRIPT_DIR / "05_figure6a_anatomical_v2.R",
+        (_SCRIPT_DIR / "5_figure6a_anatomical.R",
          "Figure 6a composite grid (3 modalities x 3 clusters)", False),
-        (_SCRIPT_DIR / "06_cluster_global_measures_violin_v2.py",
+        (_SCRIPT_DIR / "6_cluster_global_measures_violin.py",
          "Global structural measures by cluster (violin)", False),
-        (_SCRIPT_DIR / "07_gt_tables_cluster_v2.R",
+        (_SCRIPT_DIR / "7_gt_tables_cluster.R",
          "Publication gt tables (per-cluster MRI stats)", False),
     ]
 

@@ -9,11 +9,17 @@
 # FDR q<0.05 ROIs outlined black. One shared "Cohen's d" colourbar per row (its
 # limit = max|d| across the three clusters for that modality).
 #
-# Input : t_stat_cluster_<C>_<metric>_<atlas>_mri_cluster_vs_td.csv
-#         (default: outputs_curated_kmeans — the full-sample-fit curated k-means)
-# Output: <input section>/figures/figure6a_anatomical_clusters.{pdf,png}
+# Input : <CLUSTER_OUT_DIR>/tables/r_input_files/t_stat_cluster_<C>_<metric>_<atlas>_mri_cluster_vs_td.csv
+#         (CLUSTER_OUT_DIR default: "outputs" -- the staging dir the curated
+#         wrapper stages into before renaming to outputs_curated_<method>/;
+#         must match the other steps' default so this step's output survives
+#         that rename instead of being written straight into a dir the
+#         wrapper later deletes)
+# Output: <CLUSTER_OUT_DIR>/figures/figure6a_anatomical_clusters.{pdf,png}
 #
-# Env overrides: ANAT_INPUT_DIR, ANAT_OUTPUT_DIR.
+# Env overrides: ANAT_INPUT_DIR, ANAT_OUTPUT_DIR (take precedence over
+# CLUSTER_OUT_DIR when set, e.g. for a standalone run against an
+# already-renamed outputs/).
 # =============================================================================
 suppressMessages({
   library(plyr); library(dplyr); library(ggplot2)
@@ -23,10 +29,12 @@ suppressMessages({
 args        <- commandArgs(trailingOnly = FALSE)
 script_path <- sub("--file=", "", args[grep("--file=", args)])
 script_dir  <- if (length(script_path) == 0) getwd() else dirname(normalizePath(script_path))
-section_dir <- dirname(script_dir)                                  # .../curated
+section_dir <- dirname(script_dir)                                  # 5_cluster_anatomical_analysis/
 
-default_fig_dir <- file.path(section_dir, "outputs_curated_kmeans", "figures")
-input_dir  <- Sys.getenv("ANAT_INPUT_DIR",  file.path(default_fig_dir, "r_input_files"))
+out_base           <- file.path(section_dir, Sys.getenv("CLUSTER_OUT_DIR", "outputs"))
+default_fig_dir    <- file.path(out_base, "figures")
+default_tables_dir <- file.path(out_base, "tables")
+input_dir  <- Sys.getenv("ANAT_INPUT_DIR",  file.path(default_tables_dir, "r_input_files"))
 output_dir <- Sys.getenv("ANAT_OUTPUT_DIR", default_fig_dir)
 if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 

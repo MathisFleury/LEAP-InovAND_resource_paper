@@ -2,24 +2,27 @@
 # =============================================================================
 # gt tables: per-cluster MRI stats (Cluster vs NT), REVISED anat
 # =============================================================================
-# Same design as 4_anatomical_analysis/curated/scripts/16_gt_tables_anat_v2.R
+# Same design as 4_anatomical_analysis/scripts/16_gt_tables_anat_v2.R
 # (t, p, p_fdr, Cohen's d; Left/Right side by side), one table set per
 # cluster (C1/C2/C3) for
 #   - cortical thickness   - surface area   - subcortical volume
-# Reads the per-cluster stats written by 01_generate_cluster_mri_inputs_v2.py
+# Reads the per-cluster stats written by 1_generate_cluster_mri_inputs.py
 # (cluster_vs_nt()). Uses FDR (not Bonferroni) for significance.
 #
-# Input : ../outputs/figures/r_input_files/t_stat_cluster_<C>_<metric>_<atlas>_mri_cluster_vs_td.csv
+# Input : ../outputs/tables/r_input_files/t_stat_cluster_<C>_<metric>_<atlas>_mri_cluster_vs_td.csv
 #           (label, t_stat, p_val, cohens_d, p_fdr)
-# Output: ../outputs/figures/table_cluster_<C>_{cortical_thickness,surface_area,subcortical_volume}.{pdf,html,png}
+# Output: ../outputs/tables/table_cluster_<C>_{cortical_thickness,surface_area,subcortical_volume}.{pdf,html,png}
+#         (these are table renders, not figures, so they live under tables/
+#         even though some formats are rasterised)
 # =============================================================================
 suppressMessages({ library(dplyr); library(tidyr); library(gt); library(stringr) })
 
 args <- commandArgs(trailingOnly = FALSE)
 sp <- sub("--file=", "", args[grep("--file=", args)])
 script_dir <- if (length(sp) == 0) getwd() else dirname(normalizePath(sp))
-base_dir <- file.path(dirname(script_dir), Sys.getenv("CLUSTER_OUT_DIR", "outputs"), "figures")
+base_dir <- file.path(dirname(script_dir), Sys.getenv("CLUSTER_OUT_DIR", "outputs"), "tables")
 r_input_dir <- file.path(base_dir, "r_input_files")
+if (!dir.exists(base_dir)) dir.create(base_dir, recursive = TRUE)
 
 separate_hemispheres <- function(df) df %>%
   mutate(hemisphere = case_when(str_detect(label, "^lh_|^left-|^Left-") ~ "Left",

@@ -12,7 +12,7 @@ groups), FDR-BH corrected across all measure x group comparisons. PFDR < 0.05
 is annotated.
 
 Source: the SAME regressed z-score FreeSurfer table used by the rest of this
-section (01_generate_cluster_mri_inputs_v2.py) — QC + ComBat + age/sex/eTIV
+section (1_generate_cluster_mri_inputs.py) — QC + ComBat + age/sex/eTIV
 regression, full-sample z-scored. The three globals are read from that file:
     total mean cortical thickness = mean(lh_MeanThickness, rh_MeanThickness)
     total intracranial volume     = eTIV
@@ -23,9 +23,8 @@ Data prep (wave selection, join keys, NT pool) is reused verbatim from 01.
 Cluster labels: curated k-means (individuals_metrics_with_clusters_curated.csv).
 Aesthetic matches 10_clinical_analysis/.../01_plot_psychomotor_milestones.py.
 
-Output: curated/outputs_curated_kmeans/figures/
-    cluster_global_measures_violin.pdf
-    cluster_global_measures_stats.csv
+Output: outputs/figures/cluster_global_measures_violin.pdf
+        outputs/tables/cluster_global_measures_stats.csv
 """
 
 import os
@@ -42,7 +41,7 @@ from statsmodels.stats.multitest import multipletests
 
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent
-_PROJECT_DIR = _SECTION_DIR.parents[1]
+_PROJECT_DIR = _SECTION_DIR.parent
 
 # --- palette from project config ---------------------------------------------
 sys.path.insert(0, str(_PROJECT_DIR / "2_genetic_analysis" / "scripts"))
@@ -50,16 +49,18 @@ from _config import PALETTE_CLUSTERS  # noqa: E402
 
 # --- default to curated k-means labels unless the caller overrode CLUSTER_FILE-
 os.environ.setdefault("CLUSTER_FILE", str(
-    _PROJECT_DIR / "1_clustering" / "outputs" / "curated" / "tables" /
+    _PROJECT_DIR / "1_clustering" / "outputs" / "tables" /
     "individuals_metrics_with_clusters_curated.csv"))
 
 # --- reuse 01's loader verbatim (same MRI table, QC, wave-selection, NT pool) -
 _spec = importlib.util.spec_from_file_location(
-    "_gen01", _SCRIPT_DIR / "01_generate_cluster_mri_inputs_v2.py")
+    "_gen01", _SCRIPT_DIR / "1_generate_cluster_mri_inputs.py")
 _gen01 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_gen01)
 
-OUT_DIR = _SECTION_DIR / os.environ.get("CLUSTER_OUT_DIR", "outputs_curated_kmeans") / "figures"
+_OUT_BASE = _SECTION_DIR / os.environ.get("CLUSTER_OUT_DIR", "outputs")
+OUT_DIR = _OUT_BASE / "figures"
+TABLES_DIR = _OUT_BASE / "tables"
 
 # measure key -> (source columns to average, axis label)
 MEASURES = {
@@ -205,7 +206,8 @@ def main():
     df = load_data()
     res = compute_stats(df)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    csv = OUT_DIR / "cluster_global_measures_stats.csv"
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    csv = TABLES_DIR / "cluster_global_measures_stats.csv"
     res.to_csv(csv, index=False)
     print(f"  Saved: {csv}")
     print(res[["label", "cluster", "test", "p_value", "p_fdr"]].to_string(index=False))

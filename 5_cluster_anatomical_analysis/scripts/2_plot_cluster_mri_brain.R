@@ -4,12 +4,13 @@
 #
 # v2 of ../../scripts/02_plot_cluster_mri_brain.R, re-rendered on the
 # QC+ComBat+age/sex/eTIV-regressed FreeSurfer dataset produced by
-# 01_generate_cluster_mri_inputs_v2.py (see that script for the new dataset
+# 1_generate_cluster_mri_inputs.py (see that script for the new dataset
 # path and LEAP_W1 / INOVAND_T1 wave selection).
 #
 # Fill is Cohen's d (Reviewer 3); FDR-significance shown by black outlines.
-# Reads input from: ../outputs/figures/r_input_files/
-# Writes output to: ../outputs/figures/
+# Reads input from: ../outputs/tables/r_input_files/
+# Writes figures to: ../outputs/figures/, the Cohen's d forest CSV to
+# ../outputs/tables/ (figures vs tables kept separate).
 # =============================================================================
 
 library(plyr)      # must be loaded BEFORE dplyr
@@ -30,10 +31,12 @@ if (length(script_path) == 0) {
   script_dir <- dirname(normalizePath(script_path))
 }
 section_dir <- dirname(script_dir)
-input_dir   <- file.path(section_dir, "outputs", "figures", "r_input_files")
+input_dir   <- file.path(section_dir, "outputs", "tables", "r_input_files")
 output_dir  <- file.path(section_dir, "outputs", "figures")
+tables_dir  <- file.path(section_dir, "outputs", "tables")
 
 if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+if (!dir.exists(tables_dir)) dir.create(tables_dir, recursive = TRUE)
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -361,7 +364,7 @@ for (cfg in metrics_config) {
 # where available). Provides explicit effect-size comparison across clusters
 # despite their different sample sizes.
 
-forest_cluster_d <- function(metric, atlas_type, output_dir) {
+forest_cluster_d <- function(metric, atlas_type, output_dir, tables_dir) {
   clusters <- c("C1", "C2", "C3")
   all_rows <- list()
   for (cluster in clusters) {
@@ -410,7 +413,7 @@ forest_cluster_d <- function(metric, atlas_type, output_dir) {
   cat(sprintf("  Saved: %s\n", basename(fname)))
 
   # Also write the table for the response letter.
-  csv_out <- file.path(output_dir,
+  csv_out <- file.path(tables_dir,
                        sprintf("cluster_%s_%s_cohens_d_forest.csv", metric, atlas_type))
   write.csv(forest_df, csv_out, row.names = FALSE)
   cat(sprintf("  Saved: %s\n", basename(csv_out)))
@@ -420,7 +423,7 @@ cat("\n============================================================\n")
 cat("Cohen's d forest plots (Reviewer 3)\n")
 cat("============================================================\n")
 for (cfg in metrics_config) {
-  forest_cluster_d(cfg$metric, cfg$atlas, output_dir)
+  forest_cluster_d(cfg$metric, cfg$atlas, output_dir, tables_dir)
 }
 
 cat("\n============================================================\n")

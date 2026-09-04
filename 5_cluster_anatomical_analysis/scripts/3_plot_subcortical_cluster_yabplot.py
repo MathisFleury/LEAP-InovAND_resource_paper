@@ -4,8 +4,8 @@ Subcortical Volume Brain Visualization — Clusters vs NT (REVISION, R3)
 
 v2 of ../../scripts/03_plot_subcortical_cluster_yabplot.py, re-rendered on
 the QC+ComBat+regression FreeSurfer dataset (LEAP_W1 / INOVAND_T1 priority).
-Reads ../outputs/figures/r_input_files/ produced by
-01_generate_cluster_mri_inputs_v2.py.
+Reads ../outputs/tables/r_input_files/ produced by
+1_generate_cluster_mri_inputs.py.
 """
 
 from pathlib import Path
@@ -21,7 +21,7 @@ from yabplot import plot_subcortical, get_atlas_regions
 # =============================================================================
 _SCRIPT_DIR  = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent
-INPUT_DIR    = _SECTION_DIR / 'outputs' / 'figures' / 'r_input_files'
+INPUT_DIR    = _SECTION_DIR / 'outputs' / 'tables' / 'r_input_files'
 OUTPUT_DIR   = _SECTION_DIR / 'outputs' / 'figures'
 
 CLUSTERS = ['C1', 'C2', 'C3']

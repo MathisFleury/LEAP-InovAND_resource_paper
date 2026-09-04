@@ -29,7 +29,7 @@ Differences vs. ../scripts/01_generate_cluster_mri_inputs.py:
   the existing pipeline.
 
 Outputs are written to:
-  5_cluster_anatomical_analysis/curated/outputs/figures/r_input_files/
+  5_cluster_anatomical_analysis/outputs/tables/r_input_files/
 """
 
 import argparse
@@ -67,10 +67,11 @@ MRI_FILE = os.environ.get("MRI_NDD_FILE") or (
     "z_scoring_qc+combat+regression_ndd/output/freesurfer_zscore_qc1_combat_regress.tsv"
 )
 _SCRIPT_DIR = Path(__file__).parent
-_SECTION_DIR = _SCRIPT_DIR.parent  # = 5_cluster_anatomical_analysis/curated/
+_SECTION_DIR = _SCRIPT_DIR.parent  # = 5_cluster_anatomical_analysis/
 # Output base dir name (env-overridable so sensitivity variants land elsewhere).
+# Under tables/, not figures/ -- these are intermediate stats CSVs, not plots.
 OUTPUT_DIR = (_SECTION_DIR / os.environ.get("CLUSTER_OUT_DIR", "outputs")
-              / "figures" / "r_input_files")
+              / "tables" / "r_input_files")
 
 # =============================================================================
 # REGION LABEL MAPS

@@ -69,7 +69,7 @@ def outputs(section_dir, curated=False, name="outputs"):
 CLUSTERS_KMEANS_FROZEN = os.path.join(_DATASET_PAPER, "df_clusters_complete_kmeans.csv")
 CLUSTERS_WARD_FROZEN = os.path.join(_DATASET_PAPER, "df_clusters_complete.csv")
 CLUSTERS_CURATED = os.path.join(
-    PROJECT_DIR, "1_clustering", "outputs", "curated", "tables",
+    PROJECT_DIR, "1_clustering", "outputs", "tables",
     "individuals_metrics_with_clusters_curated.csv",
 )
 CLUSTERS_DEFAULT = CLUSTERS_CURATED
@@ -130,7 +130,7 @@ PGS_EUR_V4 = os.path.join(_GENETICS_IMG5, "InovAND-LEAP.pgs.europeans.v4.tsv")
 # table (CLUSTERS_CURATED), NOT from any embedded clinical columns.
 #
 # Column naming in this table is raw FreeSurfer 8.1 stats — load it via 05's
-# `load_curated_mri_with_canonical_id()` (4_anatomical_analysis/curated/),
+# `load_curated_mri_with_canonical_id()` (4_anatomical_analysis/),
 # which renames to tidy lh_/rh_*_{thickness,area,grayvol} + subcortical and
 # attaches a canonical ID.
 # Switch qc1<->qc12 by changing the filename here. As of 2026-07 the regression

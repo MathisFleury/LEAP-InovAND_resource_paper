@@ -33,11 +33,11 @@ CARRIER_V4 = _shared.CARRIER_V4
 PALETTE_POPULATION1 = _shared.PALETTE_POPULATION1
 
 # Curated k-means cluster solution produced WITHIN this project by
-# 1_clustering/scripts/04_run_clustering.py. Carries the curated
+# 1_clustering/scripts/4_run_clustering.py. Carries the curated
 # clinical columns (IQ, SRS_tscore, vabsabcabc_standard, Population1) with the
 # k-means Cluster label. (In-project output — not the sibling-repo copy.)
 CLUSTERS_CURATED_FILE = os.path.join(
-    _project_dir, "1_clustering", "outputs", "curated", "tables",
+    _project_dir, "1_clustering", "outputs", "tables",
     "individuals_metrics_with_clusters_curated.csv",
 )
 

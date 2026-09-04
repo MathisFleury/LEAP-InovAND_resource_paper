@@ -8,12 +8,12 @@
 # Clustering methodology (curated priority regime): K-means (n_init=25,
 # random_state=42, k=3) on standardised IQ x SRS-2 (IQ = total_IQ fillna
 # performance_IQ), with LEAP wave backfill T1->T2->T3. Written by
-# 1_clustering/scripts/04_run_clustering.py -> CLUSTERS_CURATED_FILE.
+# 1_clustering/scripts/1_run_clustering.py -> CLUSTERS_CURATED_FILE.
 # NT and IDD are assigned from the broad curated clinical rosters
 # (population_group), NOT from the k-means fit — those rosters are not gated on
 # IQ+SRS completeness, so controls with milestone data but no IQ/SRS are kept.
 # Ward/GMM are retained only as sensitivity analyses (see CLAUDE.md /
-# 06_method_comparison.py).
+# 6_method_comparison.py).
 #
 # Input:  concat_fonda_FIRST_ACQUISITIONS_251112.csv  (InovAND first acquisitions)
 #         individuals_metrics_with_clusters_curated.csv       (curated C1/C2/C3 labels)

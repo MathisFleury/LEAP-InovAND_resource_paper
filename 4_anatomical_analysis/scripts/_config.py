@@ -5,8 +5,8 @@
 # come from the root config.py. Only the env-driven, section-local bits
 # (output base, cluster roster, curated-clinical toggle) stay here.
 #
-# Used by: 1_anatomical_mri_autism_nt_v2.py, 5_loeuf_mri_correlations_hg38_v2.py,
-#          8_loeuf_mri_regression_permutation_v2.py, and (transitively, via
+# Used by: 1_anatomical_mri_autism_nt.py, 5_loeuf_mri_correlations_hg38.py,
+#          8_loeuf_mri_regression_permutation.py, and (transitively, via
 #          sys.path + dynamic import) 11_age_sex_analysis/scripts/01_age_sex_interactions.py.
 # =============================================================================
 

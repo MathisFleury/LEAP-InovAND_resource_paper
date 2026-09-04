@@ -7,11 +7,11 @@ for the three gene lists (Protein Coding / CHROM / SynGO), with +/-1 SE bars and
 permutation-test significance stars. Styled after
 eeg_mri-pipeline/.../genetics_mri_analysis/beta_coefficients_iq_loeuf_final.pdf.
 
-Reads the tables written by 8_loeuf_mri_regression_permutation_v2.py
+Reads the tables written by 8_loeuf_mri_regression_permutation.py
   (outputs/tables_genetics_hg38_regperm/loeuf_reg_*.csv)
 and writes to outputs/figures_genetics_hg38_regperm/.
 
-Run:  python3 10_beta_coefficients_roi_v2.py
+Run:  python3 10_beta_coefficients_roi.py
 """
 
 import glob

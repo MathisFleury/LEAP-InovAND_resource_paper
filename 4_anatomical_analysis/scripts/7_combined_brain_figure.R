@@ -16,7 +16,7 @@ section_dir <- dirname(script_dir)                       # 4_anatomical_analysis
 shared      <- file.path(script_dir, "_combined_brain_figure_shared.R")
 
 Sys.setenv(
-  ANAT_INPUT_DIR  = file.path(section_dir, "outputs", "figures", "r_input_files"),
+  ANAT_INPUT_DIR  = file.path(section_dir, "outputs", "tables", "r_input_files"),
   ANAT_OUTPUT_DIR = file.path(section_dir, "outputs", "figures"),
   ANAT_FILL       = "cohensd",
   ANAT_SCALE_MAX  = "0.4",

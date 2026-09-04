@@ -55,7 +55,7 @@ import curated_clinical  # curated per-cohort clinical TSVs (population_group/ag
 # anatomical pipeline's script 1 (module name starts with a digit -> importlib):
 # reuse its FreeSurfer column rename, wave dedup, and canonical join-key helpers.
 _spec = importlib.util.spec_from_file_location(
-    'anat01', os.path.join(_CURATED_SCRIPTS, '1_anatomical_mri_autism_nt_v2.py'))
+    'anat01', os.path.join(_CURATED_SCRIPTS, '1_anatomical_mri_autism_nt.py'))
 anat01 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(anat01)
 

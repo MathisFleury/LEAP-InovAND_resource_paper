@@ -8,7 +8,7 @@
 # diverging r scale; BH-FDR q<0.05 outlined black.
 #
 # Consumes ../outputs/tables_clinical_mri/clinmri_<clin>_<feature>.csv written by
-# 12_clinical_mri_correlations_v2.py. Adapted from 6_loeuf_mri_brain_maps_hg38_v2.R.
+# 12_clinical_mri_correlations.py. Adapted from 6_loeuf_mri_brain_maps_hg38.R.
 # Output: ../outputs/figures_clinical_mri/clinical_mri_brain_maps.pdf
 # =============================================================================
 suppressMessages({

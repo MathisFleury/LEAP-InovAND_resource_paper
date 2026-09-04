@@ -12,7 +12,7 @@ Quality convention: `defects = -mean_euler` (higher = worse reconstruction, so
 the sign logic matches the FD analysis). Autism typically has more negative
 Euler (more defects).
 
-Produces (outputs/figures/qc_euler/):
+Produces (outputs/tables/qc_euler/ for the CSVs, outputs/figures/qc_euler/ for the plot):
   (1) Euler group difference (Autism vs NT): Welch t, Cohen's d.
   (2) defects <-> phenotype association for each FDR-significant region
       (thickness / area / subcortical volume): Pearson r pooled + within-group,
@@ -35,12 +35,14 @@ import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind, pearsonr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-_m01 = import_module("1_anatomical_mri_autism_nt_v2")
+_m01 = import_module("1_anatomical_mri_autism_nt")
 import _config  # noqa: E402
 
 _SECTION = Path(__file__).resolve().parent.parent
-RINPUT = _SECTION / "outputs" / "figures" / "r_input_files"
+RINPUT = _SECTION / "outputs" / "tables" / "r_input_files"
+TABLES_OUT = _SECTION / "outputs" / "tables" / "qc_euler"
 OUT = _SECTION / "outputs" / "figures" / "qc_euler"
+TABLES_OUT.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)
 CURATED = Path("/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource/"
                "1_clustering/outputs/tables/individuals_metrics_with_clusters_curated.csv")
@@ -73,7 +75,7 @@ def main() -> int:
           f"Welch t={t:.2f} p={p:.2e} Cohen's d={d:+.3f} (negative = autism worse)")
     pd.DataFrame([{"measure": "mean_euler", "autism_mean": ea.mean(), "nt_mean": en.mean(),
                    "welch_t": t, "p": p, "cohens_d": d, "n_autism": len(ea), "n_nt": len(en)}]
-                 ).to_csv(OUT / "euler_effect_sizes.csv", index=False)
+                 ).to_csv(TABLES_OUT / "euler_effect_sizes.csv", index=False)
 
     # (2) defects <-> phenotype for FDR-significant regions
     rows = []
@@ -98,7 +100,7 @@ def main() -> int:
                              "scope": scope, "r_defects_vs_pheno": round(rr, 3), "p": round(pr, 4), "n": int(ok.sum()),
                              "same_dir_as_group": bool(np.sign(rr) == gdir)})
     assoc = pd.DataFrame(rows)
-    assoc.to_csv(OUT / "euler_phenotype_association.csv", index=False)
+    assoc.to_csv(TABLES_OUT / "euler_phenotype_association.csv", index=False)
     # summary per metric (within-Autism scope = the interpretable one)
     print("\n[defects <-> phenotype] FDR-significant regions (within-Autism scope):")
     for metric, _, _ in METRICS:
@@ -111,7 +113,7 @@ def main() -> int:
 
     # (3) Euler violin by population
     make_violin()
-    print(f"\nSaved: {OUT}/euler_effect_sizes.csv, euler_phenotype_association.csv, euler_violin.pdf")
+    print(f"\nSaved: {TABLES_OUT}/euler_effect_sizes.csv, euler_phenotype_association.csv; {OUT}/euler_violin.pdf")
     return 0
 
 

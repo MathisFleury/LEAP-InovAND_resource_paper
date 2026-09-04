@@ -11,7 +11,7 @@ MRI      : revised FreeSurfer z-score+ComBat+regression table, loaded (with the
 Clinical : the CURATED cluster table (curated SRS/RBS-R/IQ/VABS + PopulationS1),
            bridged to the MRI by the same canonical join key.
 
-Output (feeds 13_clinical_mri_brain_maps_v2.R):
+Output (feeds 13_clinical_mri_brain_maps.R):
   ../outputs/tables_clinical_mri/clinmri_<clin>_<feature>.csv
   columns: mri_col, mri_type, hemisphere, region, correlation, p_value, p_fdr, sample_size
 """
@@ -27,8 +27,8 @@ from scipy.stats import pearsonr, zscore
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from importlib import import_module
-_m05 = import_module("5_loeuf_mri_correlations_hg38_v2")
-_mod01 = import_module("1_anatomical_mri_autism_nt_v2")
+_m05 = import_module("5_loeuf_mri_correlations_hg38")
+_mod01 = import_module("1_anatomical_mri_autism_nt")
 import _config  # noqa: E402
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 import config as root_config  # noqa: E402  (for the curated cluster table)

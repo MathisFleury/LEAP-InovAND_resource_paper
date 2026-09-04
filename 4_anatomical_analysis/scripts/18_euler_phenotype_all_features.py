@@ -17,7 +17,7 @@ directly against the reported group-difference effect sizes (|d| ~ 0.2-0.6)
 rather than living on a different (correlation) scale.
 
 Outputs ggseg-input CSVs in the same 5-column format
-2_plot_anatomical_mri_brain_v2.R already reads (label, t_stat, p_val,
+2_plot_anatomical_mri_brain.R already reads (label, t_stat, p_val,
 cohens_d, p_fdr) -- `cohens_d` holds this converted value (so ggseg colors by
 it) and `p_fdr` holds the ORIGINAL group-difference BONFERRONI-corrected p
 (`p_bonf`, not `p_fdr` -- confirmed via R4.4 of the reviewer response: the
@@ -30,7 +30,7 @@ its contents are the Bonferroni p) -- so the outline marks exactly the
 regions the main-text Results paragraph reports as significant, not a
 different, FDR-only set.
 
-Output: outputs/figures/r_input_files_qc/euler_r_vs_pheno_<atlas>_<metric>.csv
+Output: outputs/tables/r_input_files_qc/euler_r_vs_pheno_<atlas>_<metric>.csv
 """
 import sys
 from pathlib import Path
@@ -41,11 +41,11 @@ import pandas as pd
 from scipy.stats import pearsonr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-_m01 = import_module("1_anatomical_mri_autism_nt_v2")
+_m01 = import_module("1_anatomical_mri_autism_nt")
 
 _SECTION = Path(__file__).resolve().parent.parent
-RINPUT = _SECTION / "outputs" / "figures" / "r_input_files"
-OUT = _SECTION / "outputs" / "figures" / "r_input_files_qc"
+RINPUT = _SECTION / "outputs" / "tables" / "r_input_files"
+OUT = _SECTION / "outputs" / "tables" / "r_input_files_qc"
 OUT.mkdir(parents=True, exist_ok=True)
 
 METRICS = [("thickness", "dk",    "t_stat_anat_dk_thickness_mri_autism_vs_control.csv"),

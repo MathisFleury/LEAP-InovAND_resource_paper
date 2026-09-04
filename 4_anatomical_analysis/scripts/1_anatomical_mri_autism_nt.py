@@ -25,9 +25,9 @@ Conventions match the 5_cluster_anatomical_analysis pipeline:
   (Hedges-Olkin 1985) + FDR-BH.
 
 Outputs (under ../outputs/):
-- figures/r_input_files/t_stat_anat_dk_thickness_mri_autism_vs_control.csv
-- figures/r_input_files/t_stat_anat_dk_area_mri_autism_vs_control.csv
-- figures/r_input_files/t_stat_anat_aseg_volume_mri_autism_vs_control.csv
+- tables/r_input_files/t_stat_anat_dk_thickness_mri_autism_vs_control.csv
+- tables/r_input_files/t_stat_anat_dk_area_mri_autism_vs_control.csv
+- tables/r_input_files/t_stat_anat_aseg_volume_mri_autism_vs_control.csv
 - tables/autism_vs_nt_summary.csv  — per-metric headline counts
 """
 
@@ -50,7 +50,7 @@ DF_CLUSTERS_FILE = _config.DF_CLUSTERS_FILE
 
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent  # 4_anatomical_analysis/
-R_INPUT_DIR = _SECTION_DIR / "outputs" / "figures" / "r_input_files"
+R_INPUT_DIR = _SECTION_DIR / "outputs" / "tables" / "r_input_files"
 TABLES_DIR = _SECTION_DIR / "outputs" / "tables"
 
 DESIKAN_REGIONS = [

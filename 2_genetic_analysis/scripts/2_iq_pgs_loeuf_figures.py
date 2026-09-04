@@ -19,7 +19,7 @@
 #     permutation p -- the analogue of 4_anatomical_analysis's
 #     beta_coefficients_*_loeuf.pdf with cortical thickness swapped for IQ.
 #     Same OLS + gene-list-specific permutation null as
-#     08_loeuf_mri_regression_permutation_v2.py.
+#     08_loeuf_mri_regression_permutation.py.
 #     -> tables/iq_loeuf_regperm.csv, figures/beta_coefficients_iq_loeuf.pdf
 #
 # Run:  python3.11 2_iq_pgs_loeuf_figures.py

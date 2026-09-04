@@ -18,7 +18,7 @@ hidden.
 
 Per bin: Welch's two-sample t-test (autism vs NT) per feature, identical to
 the primary whole-cohort test in
-4_anatomical_analysis/scripts/1_anatomical_mri_autism_nt_v2.py
+4_anatomical_analysis/scripts/1_anatomical_mri_autism_nt.py
 (ttest_ind(a, b, equal_var=False); pooled-SD Cohen's d) -- per user decision,
 2026-08-30: no covariates in the test itself, for consistency with the
 primary analysis's test type. FDR-BH within each metric family (thickness_dk
@@ -71,7 +71,7 @@ SAFE = {'<6': 'lt6', '6-9': '6_9', '10-13': '10_13', '14-17': '14_17',
 
 def _cohens_d(a, b):
     """Pooled-SD Cohen's d -- identical formula to
-    01_anatomical_mri_autism_nt_v2.py's _cohens_d."""
+    1_anatomical_mri_autism_nt.py's _cohens_d."""
     n_a, n_b = len(a), len(b)
     sd = np.sqrt(((n_a - 1) * np.var(a, ddof=1) + (n_b - 1) * np.var(b, ddof=1))
                  / (n_a + n_b - 2))

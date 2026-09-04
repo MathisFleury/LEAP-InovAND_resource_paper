@@ -4,7 +4,7 @@ Euler number by population — REVISION
 
 Reports the FreeSurfer Euler number (``mean_euler`` column in the new
 QC+ComBat+regression TSV) **per population type**, using the same wave
-selection as 1_anatomical_mri_autism_nt_v2.py (one row per subject;
+selection as 1_anatomical_mri_autism_nt.py (one row per subject;
 LEAP_W1 / INOVAND_T1 priority).
 
 Output is analogous to the manuscript's existing Supplementary Fig. 19a
@@ -37,7 +37,7 @@ from scipy import stats
 _THIS_DIR = Path(__file__).parent
 sys.path.insert(0, str(_THIS_DIR))
 from importlib import import_module
-_gen = import_module("1_anatomical_mri_autism_nt_v2")  # noqa: E402
+_gen = import_module("1_anatomical_mri_autism_nt")  # noqa: E402
 
 MRI_FILE = _gen.MRI_FILE
 DF_CLUSTERS_FILE = _gen.DF_CLUSTERS_FILE

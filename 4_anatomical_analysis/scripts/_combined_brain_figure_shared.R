@@ -28,7 +28,7 @@ script_path <- sub("--file=", "", args[grep("--file=", args)])
 script_dir  <- if (length(script_path) == 0) getwd() else dirname(normalizePath(script_path))
 section_dir <- dirname(script_dir)
 
-input_dir  <- Sys.getenv("ANAT_INPUT_DIR",  file.path(section_dir, "outputs", "figures", "r_input_files"))
+input_dir  <- Sys.getenv("ANAT_INPUT_DIR",  file.path(section_dir, "outputs", "tables", "r_input_files"))
 output_dir <- Sys.getenv("ANAT_OUTPUT_DIR", file.path(section_dir, "outputs", "figures"))
 # ANAT_SCALE_MAX (if set) gives a fixed symmetric limit for the Cohen's d figure
 # only; t-stats always use a per-panel data-driven limit.

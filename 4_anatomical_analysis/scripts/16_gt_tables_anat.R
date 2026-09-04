@@ -5,20 +5,22 @@
 # Publication-ready gt tables (t, p, q, Cohen's d; Left/Right side by side) for
 #   - cortical thickness   - surface area   - subcortical volume
 # Recomputed on the revised regressed FreeSurfer + curated clinical (autism vs
-# NT), i.e. the per-region stats written by 1_anatomical_mri_autism_nt_v2.py
+# NT), i.e. the per-region stats written by 1_anatomical_mri_autism_nt.py
 # (run with CURATED_CLINICAL=1). Adapted from
 # eeg_mri-pipeline/.../tables_creation/gt_table_anat_creation.R.
 #
-# Input : ../outputs/figures/r_input_files/t_stat_anat_*.csv
+# Input : ../outputs/tables/r_input_files/t_stat_anat_*.csv
 #           (label, t_stat, p_val, cohens_d, p_fdr, p_bonf)
-# Output: ../outputs/figures/table_{cortical_thickness,surface_area,subcortical_volume}.{pdf,html}
+# Output: ../outputs/tables/table_{cortical_thickness,surface_area,subcortical_volume}.{pdf,html}
+#         (table renders, not figures, even though some formats are rasterised)
 # =============================================================================
 suppressMessages({ library(dplyr); library(tidyr); library(gt); library(stringr) })
 
 args <- commandArgs(trailingOnly = FALSE)
 sp <- sub("--file=", "", args[grep("--file=", args)])
 script_dir <- if (length(sp) == 0) getwd() else dirname(normalizePath(sp))
-base_dir <- file.path(dirname(script_dir), Sys.getenv("LOEUF_OUT_DIR", "outputs"), "figures")
+base_dir <- file.path(dirname(script_dir), Sys.getenv("LOEUF_OUT_DIR", "outputs"), "tables")
+if (!dir.exists(base_dir)) dir.create(base_dir, recursive = TRUE)
 r_input_dir <- file.path(base_dir, "r_input_files")
 
 separate_hemispheres <- function(df) df %>%

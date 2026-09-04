@@ -24,7 +24,7 @@ import seaborn as sns
 from scipy.stats import pearsonr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-_m12 = import_module("12_clinical_mri_correlations_v2")
+_m12 = import_module("12_clinical_mri_correlations")
 import _config  # noqa: E402
 
 OUT_DIR = Path(_config.OUTPUT_BASE) / "figures_clinical_mri"

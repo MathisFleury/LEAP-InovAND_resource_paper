@@ -4,7 +4,7 @@ Subcortical Volume Brain Visualization — Autism vs NT (REVISION, R3)
 
 v2 of ../../scripts/04_plot_subcortical_yabplot.py.  Renders Cohen's d
 on the aseg atlas using a fixed [-0.4, 0.4] color scale to match the
-cortical brain maps emitted by 2_plot_anatomical_mri_brain_v2.R and the
+cortical brain maps emitted by 2_plot_anatomical_mri_brain.R and the
 per-cluster v2 plots in 5_cluster_anatomical_analysis/.
 """
 
@@ -22,7 +22,7 @@ from yabplot import plot_subcortical, get_atlas_regions
 # =============================================================================
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent
-INPUT_DIR = _SECTION_DIR / "outputs" / "figures" / "r_input_files"
+INPUT_DIR = _SECTION_DIR / "outputs" / "tables" / "r_input_files"
 OUTPUT_DIR = _SECTION_DIR / "outputs" / "figures"
 INPUT_FILE = INPUT_DIR / "t_stat_anat_aseg_volume_mri_autism_vs_control.csv"
 
@@ -87,7 +87,7 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     if not INPUT_FILE.exists():
         print(f"ERROR: input file not found ({INPUT_FILE}). "
-              "Run 1_anatomical_mri_autism_nt_v2.py first.")
+              "Run 1_anatomical_mri_autism_nt.py first.")
         return 1
     df = load_data(INPUT_FILE)
     d_max = max(float(np.nanmax(np.abs(df["cohens_d"].values))), D_FLOOR)

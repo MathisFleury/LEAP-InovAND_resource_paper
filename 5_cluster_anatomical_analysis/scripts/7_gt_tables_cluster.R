@@ -2,7 +2,7 @@
 # =============================================================================
 # gt tables: per-cluster MRI stats (Cluster vs NT), REVISED anat
 # =============================================================================
-# Same design as 4_anatomical_analysis/scripts/16_gt_tables_anat_v2.R
+# Same design as 4_anatomical_analysis/scripts/16_gt_tables_anat.R
 # (t, p, p_fdr, Cohen's d; Left/Right side by side), one table set per
 # cluster (C1/C2/C3) for
 #   - cortical thickness   - surface area   - subcortical volume

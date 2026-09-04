@@ -4,7 +4,7 @@
 #
 # v2 of ../../scripts/03_plot_anatomical_mri_brain_visualizations.R, using
 # the QC+ComBat+regression FreeSurfer dataset (LEAP_W1 / INOVAND_T1 priority)
-# produced by 1_anatomical_mri_autism_nt_v2.py.
+# produced by 1_anatomical_mri_autism_nt.py.
 #
 # Fill: Cohen's d (same convention as the cluster v2 plots).
 # Scale: fixed [-0.4, 0.4] across thickness / area / volume for direct
@@ -12,7 +12,7 @@
 # FDR-significant regions outlined in black.
 # Also emits a Cohen's d forest plot (95 % CI) of FDR-significant ROIs.
 #
-# Input : ../outputs/figures/r_input_files/t_stat_anat_*_mri_autism_vs_control.csv
+# Input : ../outputs/tables/r_input_files/t_stat_anat_*_mri_autism_vs_control.csv
 # Output: ../outputs/figures/
 # =============================================================================
 
@@ -35,9 +35,11 @@ if (length(script_path) == 0) {
   script_dir <- dirname(normalizePath(script_path))
 }
 section_dir <- dirname(script_dir)
-input_dir   <- file.path(section_dir, "outputs", "figures", "r_input_files")
+input_dir   <- file.path(section_dir, "outputs", "tables", "r_input_files")
+tables_dir  <- file.path(section_dir, "outputs", "tables")
 output_dir  <- file.path(section_dir, "outputs", "figures")
 if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+if (!dir.exists(tables_dir)) dir.create(tables_dir, recursive = TRUE)
 
 brain_map_theme <- theme_minimal() +
   theme(plot.title       = element_text(size = 16, face = "bold", hjust = 0.5),
@@ -349,7 +351,7 @@ plot_forest <- function() {
   fname <- file.path(output_dir, "autism_vs_nt_cohens_d_forest.pdf")
   ggsave(fname, plot = p, width = 7,
          height = max(3, 0.18 * nrow(df) + 1.8))
-  csv_out <- file.path(output_dir, "autism_vs_nt_cohens_d_forest.csv")
+  csv_out <- file.path(tables_dir, "autism_vs_nt_cohens_d_forest.csv")
   write.csv(df, csv_out, row.names = FALSE)
   cat(paste0("  Saved: ", basename(fname), "  +  ", basename(csv_out), "\n"))
 }

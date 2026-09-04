@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from importlib import import_module
-_m01 = import_module("1_anatomical_mri_autism_nt_v2")
+_m01 = import_module("1_anatomical_mri_autism_nt")
 import _config
 import curated_clinical
 

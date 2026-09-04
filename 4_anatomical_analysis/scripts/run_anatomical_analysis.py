@@ -4,7 +4,7 @@ Anatomical MRI Analysis Pipeline (current, priority regime)
 
 Runs the v2 anatomical pipeline rebuilt on the QC + ComBat +
 age/sex/eTIV-regressed FreeSurfer table, with LEAP_W1 / INOVAND_T1
-wave selection (see 1_anatomical_mri_autism_nt_v2.py for details).
+wave selection (see 1_anatomical_mri_autism_nt.py for details).
 
 Steps:
   1. Autism vs NT contrasts — t / Cohen's d / FDR per region.
@@ -59,37 +59,37 @@ def main() -> bool:
     print("=" * 60)
 
     steps = [
-        (_SCRIPT_DIR / "1_anatomical_mri_autism_nt_v2.py",
+        (_SCRIPT_DIR / "1_anatomical_mri_autism_nt.py",
          "Autism vs NT — t / Cohen's d / FDR", True),
-        (_SCRIPT_DIR / "2_plot_anatomical_mri_brain_v2.R",
+        (_SCRIPT_DIR / "2_plot_anatomical_mri_brain.R",
          "Cortical brain maps (ggseg, Cohen's d)", False),
-        (_SCRIPT_DIR / "7_combined_brain_figure_v2.R",
+        (_SCRIPT_DIR / "7_combined_brain_figure.R",
          "Combined single-page brain figure (4 features, FDR, ROI labels)", False),
-        (_SCRIPT_DIR / "3_plot_subcortical_yabplot_v2.py",
+        (_SCRIPT_DIR / "3_plot_subcortical_yabplot.py",
          "Subcortical brain map (yabplot, Cohen's d)", False),
         (_SCRIPT_DIR / "4_euler_by_population.py",
          "Euler number by population (QC summary)", False),
-        (_SCRIPT_DIR / "5_loeuf_mri_correlations_hg38_v2.py",
+        (_SCRIPT_DIR / "5_loeuf_mri_correlations_hg38.py",
          "LOEUF (v4) × MRI Pearson correlations (per pathway×feature FDR)", False),
-        (_SCRIPT_DIR / "6_loeuf_mri_brain_maps_hg38_v2.R",
+        (_SCRIPT_DIR / "6_loeuf_mri_brain_maps_hg38.R",
          "LOEUF (v4) correlation brain maps (per-pathway combined figure)", False),
-        (_SCRIPT_DIR / "8_loeuf_mri_regression_permutation_v2.py",
+        (_SCRIPT_DIR / "8_loeuf_mri_regression_permutation.py",
          "LOEUF (v4) × MRI OLS β + permutation (gene-list-specific null)", False),
-        (_SCRIPT_DIR / "9_loeuf_combined_brain_figure_v2.R",
+        (_SCRIPT_DIR / "9_loeuf_combined_brain_figure.R",
          "LOEUF (v4) regression β brain maps (per-pathway, perm p<0.05)", False),
-        (_SCRIPT_DIR / "10_beta_coefficients_roi_v2.py",
+        (_SCRIPT_DIR / "10_beta_coefficients_roi.py",
          "Per-ROI beta-coefficient figures (LOEUF x MRI, hg38 regperm)", False),
         (_SCRIPT_DIR / "11_age_imbalance_sensitivity.py",
          "Age-imbalance sensitivity (Autism vs NT, ComBat file)", False),
-        (_SCRIPT_DIR / "12_clinical_mri_correlations_v2.py",
+        (_SCRIPT_DIR / "12_clinical_mri_correlations.py",
          "Clinical x MRI Pearson correlations (curated clinical)", False),
-        (_SCRIPT_DIR / "13_clinical_mri_brain_maps_v2.R",
+        (_SCRIPT_DIR / "13_clinical_mri_brain_maps.R",
          "Clinical x MRI brain maps (ggseg)", False),
         (_SCRIPT_DIR / "14_site_effect_size_stg.py",
          "Per-site effect size, L superior temporal thickness", False),
-        (_SCRIPT_DIR / "15_clinical_mri_scatter_v2.py",
+        (_SCRIPT_DIR / "15_clinical_mri_scatter.py",
          "Clinical x MRI scatter panels", False),
-        (_SCRIPT_DIR / "16_gt_tables_anat_v2.R",
+        (_SCRIPT_DIR / "16_gt_tables_anat.R",
          "Publication gt tables (Autism vs NT, curated)", False),
         (_SCRIPT_DIR / "17_euler_confound_check.py",
          "Euler-number (image-quality) confound check", False),

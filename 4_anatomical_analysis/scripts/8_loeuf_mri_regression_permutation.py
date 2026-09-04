@@ -3,7 +3,7 @@
 LOEUF (v4) × MRI — OLS regression + permutation test (REVISION, paper method)
 
 Reproduces the first-iteration paper statistic (distinct from
-5_loeuf_mri_correlations_hg38_v2.py, which uses Pearson r + parametric p):
+5_loeuf_mri_correlations_hg38.py, which uses Pearson r + parametric p):
 
   For each gene set and each MRI feature/ROI:
     - OLS regression of the MRI metric on -log10(LOEUF) best-score:
@@ -34,7 +34,7 @@ from scipy import stats as sps
 # Reuse the loaders / roster / carrier logic from script 05.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from importlib import import_module
-_m05 = import_module("5_loeuf_mri_correlations_hg38_v2")  # noqa: E402
+_m05 = import_module("5_loeuf_mri_correlations_hg38")  # noqa: E402
 import _config  # noqa: E402  shared paths + hyperparameters (see _config.py)
 
 neg_log10        = _m05.neg_log10

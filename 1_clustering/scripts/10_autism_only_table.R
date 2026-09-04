@@ -1,12 +1,12 @@
 # =============================================================================
 # Supplementary table — autism-only clustering profile & concordance (R4.6)
 # =============================================================================
-# Companion to 07_autism_only_clustering.py: assembles the autism-only cluster
+# Companion to 9_autism_only_clustering.py: assembles the autism-only cluster
 # profile (IQ/SRS-2), its crosstab against the full-cohort assignment, and the
 # concordance/silhouette numbers into one publication-ready gt table (CSV + PDF).
-# Same rendering convention as 06b_method_comparison_table.R.
+# Same rendering convention as 8_method_comparison_table.R.
 #
-# Run:  Rscript 07b_autism_only_table.R
+# Run:  Rscript 10_autism_only_table.R
 # =============================================================================
 
 library(readr)
@@ -16,7 +16,7 @@ library(gt)
 args <- commandArgs(trailingOnly = FALSE)
 script_path <- sub("^--file=", "", args[grep("^--file=", args)])
 SCRIPT_DIR <- if (length(script_path)) dirname(normalizePath(script_path)) else getwd()
-TABLES_DIR <- normalizePath(file.path(SCRIPT_DIR, "..", "outputs", "curated", "tables"))
+TABLES_DIR <- normalizePath(file.path(SCRIPT_DIR, "..", "outputs", "tables"))
 
 profile     <- read_csv(file.path(TABLES_DIR, "autism_only_cluster_profile.csv"), show_col_types = FALSE)
 crosstab    <- read_csv(file.path(TABLES_DIR, "autism_only_vs_fullcohort_crosstab.csv"), show_col_types = FALSE)

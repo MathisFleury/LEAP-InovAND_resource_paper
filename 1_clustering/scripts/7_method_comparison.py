@@ -73,7 +73,7 @@ warnings.filterwarnings(
 # --- Configuration ---
 # curated is the priority regime; pass "curated" to compare methods on the
 # curated cluster inputs (features read from the curated assignment table,
-# outputs written under outputs/curated/).
+# outputs written flat under outputs/, matching 1_run_clustering.py).
 CURATED = "curated" in sys.argv[1:] or "--curated" in sys.argv[1:]
 
 _script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -82,12 +82,16 @@ DATA_PATH = os.environ.get(
     os.path.join(_script_dir, "..", "..", "..", "imaging2genet", "0_input", "dataframes"),
 )
 INDIVIDUALS_METRICS = os.path.join(DATA_PATH, "individuals_metrics.tsv")
-OUTPUT_BASE = os.path.normpath(os.path.join(_script_dir, "..", "outputs",
-                                           *(("curated",) if CURATED else ())))
+_SECTION_OUTPUTS = os.path.normpath(os.path.join(_script_dir, "..", "outputs"))
+# Curated is flat in the main tree (current pipeline); frozen writes to its
+# own self-contained legacy/ location so the unsuffixed filenames below
+# (method_comparison.pdf, method_comparison_*.csv) never collide.
+_LEGACY_OUTPUTS = os.path.normpath(os.path.join(_script_dir, "..", "..", "legacy", "1_clustering", "outputs"))
+OUTPUT_BASE = _SECTION_OUTPUTS if CURATED else _LEGACY_OUTPUTS
 FIGURES_DIR = os.path.join(OUTPUT_BASE, "figures")
 TABLES_DIR = os.path.join(OUTPUT_BASE, "tables")
-# curated features come from the assignment table 04_run_clustering wrote.
-CURATED_FEATURES = os.path.join(TABLES_DIR, "cluster_assignments_curated.csv")
+# curated features come from the assignment table 1_run_clustering.py wrote.
+CURATED_FEATURES = os.path.join(_SECTION_OUTPUTS, "tables", "cluster_assignments_curated.csv")
 os.makedirs(FIGURES_DIR, exist_ok=True)
 os.makedirs(TABLES_DIR, exist_ok=True)
 
@@ -117,7 +121,7 @@ def _label_by_size_desc(raw_labels, k):
 
 
 def fit_ward(X, k=N_CLUSTERS):
-    """op.heatmap-equivalent Ward (see 04_run_clustering.py)."""
+    """op.heatmap-equivalent Ward (see 1_run_clustering.py)."""
     D = squareform(pdist(X, metric="euclidean"))
     Z = linkage(D, method="ward")
     raw = fcluster(Z, t=k, criterion="maxclust") - 1
@@ -168,7 +172,7 @@ def jaccard_per_cluster(ref, pred_aligned, k=N_CLUSTERS):
 # --- Data preparation ---
 clinical_features = ["IQ", "SRS_tscore"]
 if CURATED:
-    # Features from the curated assignment table (04_run_clustering.py).
+    # Features from the curated assignment table (1_run_clustering.py).
     df_clust = pd.read_csv(CURATED_FEATURES, low_memory=False)
     df_clust = df_clust[clinical_features + ["ID"]].dropna().reset_index(drop=True)
     print(f"[curated] features from {os.path.basename(CURATED_FEATURES)}")

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # =============================================================================
-# 05 - Cluster Stability Analysis
+# 5 - Cluster Stability Analysis
 # =============================================================================
 # Robustness checks for the k=3 IQ × SRS partition, run for all three
 # candidate methods (K-means = primary, Ward = sensitivity, GMM = sensitivity).
-# See 04_run_clustering.py for the methods; see 06_method_comparison.py for
+# See 4_run_clustering.py for the methods; see 7_method_comparison.py for
 # the head-to-head metrics that motivated K-means as primary.
 #
 # For each method, the four standard stability analyses are run:
@@ -41,25 +41,24 @@ warnings.filterwarnings(
     message=".*looks suspiciously like an uncondensed distance matrix.*",
 )
 
-# --- Configuration (mirrors 04_run_clustering.py) ---
+# --- Configuration (mirrors 4_run_clustering.py) ---
 # Curated (current, priority regime) by default -- reads the ready feature CSV
-# (ID, IQ, SRS_tscore) written by 04_run_clustering.py. No frozen/
-# deprecated-data fallback here: for the paper-reproduction run, see
-# legacy/1_clustering/05_cluster_stability_frozen.py, which derives the same
-# ready-CSV shape from the deprecated individuals_metrics.tsv (see root
-# CLAUDE.md) and invokes this same engine -- kept out of this file so that
-# reference isn't visible in the main tree.
+# (ID, IQ, SRS_tscore) written by 4_run_clustering.py. No frozen/
+# deprecated-data fallback here: the paper-reproduction run lives in the
+# local (not publicly released) frozen pipeline, which derives the same
+# ready-CSV shape from its own reference table and invokes this same engine.
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_FEATURES_CSV = os.path.join(_script_dir, "..", "outputs", "curated", "tables",
-                                     "cluster_assignments_curated.csv")
+_SECTION_OUTPUTS = os.path.normpath(os.path.join(_script_dir, "..", "outputs"))
+_DEFAULT_FEATURES_CSV = os.path.join(_SECTION_OUTPUTS, "tables", "cluster_assignments_curated.csv")
 FEATURES_CSV = os.environ.get("STABILITY_FEATURES_CSV", _DEFAULT_FEATURES_CSV)
 if not os.path.exists(FEATURES_CSV):
-    sys.exit(f"Input not found: {FEATURES_CSV}\nRun 04_run_clustering.py first"
+    sys.exit(f"Input not found: {FEATURES_CSV}\nRun 4_run_clustering.py first"
               " (or set STABILITY_FEATURES_CSV to point elsewhere).")
-_OUT_SUB = os.environ.get("STABILITY_OUTPUT_SUBDIR", "curated")
-OUTPUT_BASE = os.path.normpath(os.path.join(_script_dir, "..", "outputs", _OUT_SUB))
-FIGURES_DIR = os.path.join(OUTPUT_BASE, "figures")
-TABLES_DIR = os.path.join(OUTPUT_BASE, "tables")
+# Flat and unqualified by default (curated is the current pipeline). The
+# frozen wrapper overrides both to keep its own figures/tables
+# self-contained instead of colliding with these unsuffixed filenames.
+FIGURES_DIR = os.environ.get("STABILITY_FIGURES_DIR", os.path.join(_SECTION_OUTPUTS, "figures"))
+TABLES_DIR = os.environ.get("STABILITY_TABLES_DIR", os.path.join(_SECTION_OUTPUTS, "tables"))
 os.makedirs(FIGURES_DIR, exist_ok=True)
 os.makedirs(TABLES_DIR, exist_ok=True)
 

@@ -4,11 +4,16 @@ Question: if we cluster ONLY autistic participants on standardised IQ x SRS-2
 (removing NT and IDD-only), does a similar three-cluster within-spectrum
 structure emerge, and how concordant is it with the full-cohort assignment?
 
-Method mirrors 04_run_clustering.py: K-means, k=3, n_init=25,
+Method mirrors 4_run_clustering.py: K-means, k=3, n_init=25,
 random_state=42, features standardised within the autistic subset, labels
 relabelled by descending size (A1/A2/A3). Reads the same feature values the
 full clustering used (the curated label file) so the two partitions are
 directly comparable on the shared autistic individuals.
+
+Distinct from 4_run_clustering.py --autism-only (which NaNs out non-autistic
+subjects but keeps them in the table, labels C1/C2/C3): this script drops
+non-autistic subjects entirely and uses its own A1/A2/A3 labels, hence its
+own "autism_only_*" output filenames rather than the cluster_autism/ subtree.
 
 # ponytail: reuses the label file's IQ/SRS rather than re-loading raw TSVs,
 # so this can't drift from the full-cohort run it is compared against.
@@ -23,14 +28,14 @@ from sklearn.metrics import (adjusted_rand_score, normalized_mutual_info_score,
                              silhouette_score)
 
 ROOT = Path(__file__).resolve().parents[2]
-LABELS = ROOT / "1_clustering/outputs/curated/tables/individuals_metrics_with_clusters_curated.csv"
-OUT = ROOT / "1_clustering/outputs/curated/tables"
-FIG_OUT = ROOT / "1_clustering/outputs/curated_autism/figures"
+LABELS = ROOT / "1_clustering/outputs/tables/individuals_metrics_with_clusters_curated.csv"
+OUT = ROOT / "1_clustering/outputs/tables"
+FIG_OUT = ROOT / "1_clustering/outputs/figures"
 AUT = {"Autism without IDD", "Autism with IDD", "Autism to exclude"}
 RS = 42
 
 # Same palette + reference lines + axis limits as the main clustering figure
-# (10_cluster_scatter_panels.py::draw_panel / config.PALETTE_CLUSTERS), so the
+# (11_cluster_scatter_panels.py::draw_panel / config.PALETTE_CLUSTERS), so the
 # autism-only figure reads as the same kind of plot, not a different style.
 PALETTE = {"A1": "#7A8B47", "A2": "#ff9fa0", "A3": "#e7ba52"}
 SRS_LINES = [60, 75]
@@ -131,7 +136,7 @@ def main():
         OUT / "autism_only_concordance.csv", index=False)
     print(f"\nwrote -> {OUT}/autism_only_*.csv")
 
-    fig_path = FIG_OUT / "clustering_scatter_curated_autism.pdf"
+    fig_path = FIG_OUT / "autism_only_scatter.pdf"
     plot_autism_only_scatter(aut, fig_path)
     print(f"wrote -> {fig_path}")
 

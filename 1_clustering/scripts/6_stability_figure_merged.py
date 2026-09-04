@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # =============================================================================
-# 05b - Unified cluster-stability figure (k-means / Ward / GMM)
+# 6 - Unified cluster-stability figure (k-means / Ward / GMM)
 # =============================================================================
 # Merges the three per-method stability figures into one supplementary figure:
 #   row A = k-means (primary), row B = Ward, row C = GMM.
 # Each row has the same four panels (per-individual modal probability,
-# subsampling, noise, sample-size curve), read from the CSVs 05_cluster_
+# subsampling, noise, sample-size curve), read from the CSVs 5_cluster_
 # stability writes.
 #
-# Curated is the priority regime → default reads outputs/curated/tables.
-# Usage:  python3 05b_stability_figure_merged.py [frozen]
-# Output: outputs/[curated/]figures/cluster_stability_merged.pdf
+# Curated is the priority regime → default reads the flat outputs/tables/.
+# Usage:  python3 6_stability_figure_merged.py [frozen]
+# Output: outputs/figures/cluster_stability_merged.pdf (frozen: self-
+#         contained under legacy/1_clustering/outputs/, same as
+#         5_cluster_stability.py's frozen wrapper).
 # =============================================================================
 
 import os
@@ -21,8 +23,9 @@ import matplotlib.pyplot as plt
 
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 FROZEN = "frozen" in sys.argv[1:]
-OUT_BASE = os.path.normpath(os.path.join(_script_dir, "..", "outputs",
-                                         *(() if FROZEN else ("curated",))))
+OUT_BASE = (os.path.join(_script_dir, "..", "..", "legacy", "1_clustering", "outputs") if FROZEN
+            else os.path.join(_script_dir, "..", "outputs"))
+OUT_BASE = os.path.normpath(OUT_BASE)
 TABLES_DIR = os.path.join(OUT_BASE, "tables")
 FIG_DIR = os.path.join(OUT_BASE, "figures")
 os.makedirs(FIG_DIR, exist_ok=True)

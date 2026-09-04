@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Run the cluster-anatomical pipelines (5_cluster_anatomical_analysis legacy
-and /curated/ v2) with K-means, Ward, and GMM cluster labels (curated data).
+Run the current cluster-anatomical pipeline (5_cluster_anatomical_analysis)
+with K-means, Ward, and GMM cluster labels (curated data). The legacy
+frozen pipeline lives in legacy/5_cluster_anatomical_analysis/ and isn't
+re-run per method here.
 
 Optional flag: --autism-only — uses the autism-only clusterings produced by
-running 04_run_clustering.py with --autism-only (i.e. cluster file
+running 4_run_clustering.py with --autism-only (i.e. cluster file
 basenames become df_clusters_complete_curated_autism{,_ward,_gmm}.csv).
 
 For each method ∈ METHODS:
@@ -20,6 +22,7 @@ Final state in each anatomical dir (when both modes have been run):
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -42,18 +45,19 @@ TAG = CLUSTER_TAG  # kept for backwards compat with the rest of the script
 print(f"=== Mode: {'AUTISM-ONLY' if AUTISM_ONLY else 'ALL POPULATIONS'}"
       f"{', NT=C1' if NT_C1 else ''} (tag={OUT_TAG}) ===")
 
-PY = "/usr/local/bin/python3.11"
-ROOT = Path("/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource")
-SIBLING = Path("/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results/dataset_paper/dataframes")
+PY = os.environ.get("LEAP_INOVAND_PYTHON", "python3.11")
+ROOT = Path(__file__).resolve().parents[2]
+SIBLING = ROOT.parent / "eeg_mri-pipeline" / "results" / "dataset_paper" / "dataframes"
 LIVE = SIBLING / "df_clusters_complete_kmeans.csv"
 
 # v2 anatomical reads a LOCAL file rather than the sibling — must also swap.
 LOCAL_INDIV = ROOT / "1_clustering" / "outputs" / "tables" / "individuals_metrics_with_clusters.csv"
-CURATED_DIR = ROOT / "1_clustering" / "outputs" / TAG / "tables"
+# Curated tables are flat; the autism-only variant lives in its own
+# cluster_autism/ subtree (not the "curated_autism" CLUSTER_TAG name).
+CURATED_DIR = ROOT / "1_clustering" / "outputs" / ("cluster_autism" if AUTISM_ONLY else "") / "tables"
 
 PIPELINES = [
-    #(ROOT / "5_cluster_anatomical_analysis", "scripts/run_cluster_anatomical_analysis.py"),
-    (ROOT / "5_cluster_anatomical_analysis" / "curated", "scripts/run_cluster_anatomical_analysis_v2.py"),
+    (ROOT / "5_cluster_anatomical_analysis", "scripts/run_cluster_anatomical_analysis.py"),
 ]
 
 METHODS = ["kmeans", "ward", "gmm"]
@@ -114,8 +118,11 @@ def run_one_pipeline(section_dir: Path, script_rel: str) -> bool:
 
 
 def filter_combined_only(out_dir: Path):
-    """Keep combined_*.pdf, *_cohens_d_forest.{pdf,csv}, r_input_files/, and
-    cluster_counts_mri.csv. Delete per-cluster cluster_C*_*.{pdf,png} files."""
+    """Within outputs/figures/ only: keep combined_*.pdf and *_cohens_d_forest.pdf,
+    delete per-cluster cluster_C*_*.{pdf,png} files. r_input_files/,
+    *_cohens_d_forest.csv, and cluster_counts_mri.csv now live under
+    outputs/tables/ (not scanned here), so those exceptions rarely trigger
+    anymore but are harmless to keep."""
     figs = out_dir / "figures"
     if not figs.exists():
         print(f"    (no figures/ under {out_dir.name})")

@@ -1,14 +1,15 @@
 # =============================================================================
 # Supplementary table — sample-size completeness across variable combinations
 # =============================================================================
-# Companion to 01_pca_features.R: renders the PCA feature-selection sample-size
+# Companion to 2_pca_features.R: renders the PCA feature-selection sample-size
 # table it already computes (sample_sizes_by_variable_combination.csv) as a
 # publication-ready gt table (CSV + PDF). Table structure/style mirrors
 # eeg_mri-pipeline/analysis/figures_papers/feature_selection_rationale.R's
 # "Sample Size Completeness" table (cols_label + fmt_number + bold-max row).
 #
-# Run:  Rscript 01b_sample_size_table.R [curated]
-#   curated  → read outputs/curated/tables/ and write *_curated.{csv,pdf}
+# Run:  Rscript 3_sample_size_table.R [curated]
+#   curated  → write *_curated.{csv,pdf} (reads the flat outputs/tables/,
+#              matching 2_pca_features.R's default output location)
 # =============================================================================
 
 library(readr)
@@ -22,8 +23,7 @@ SCRIPT_DIR <- if (length(script_path)) dirname(normalizePath(script_path)) else 
 user_args <- commandArgs(trailingOnly = TRUE)
 CURATED <- any(user_args %in% c("curated", "--curated"))
 
-TABLES_DIR <- normalizePath(file.path(
-  SCRIPT_DIR, "..", "outputs", if (CURATED) "curated" else ".", "tables"))
+TABLES_DIR <- normalizePath(file.path(SCRIPT_DIR, "..", "outputs", "tables"))
 OUT_SUFFIX <- if (CURATED) "_curated" else ""
 
 sizes <- read_csv(file.path(TABLES_DIR, "sample_sizes_by_variable_combination.csv"),

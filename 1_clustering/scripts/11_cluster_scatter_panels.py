@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # =============================================================================
-# 10 - Cluster scatter panels (IQ x SRS), coloured 4 ways
+# 11 - Cluster scatter panels (IQ x SRS), coloured 4 ways
 # =============================================================================
 # Four small sklearn-KMeans-style scatter plots of the clustering space
 # (Measured IQ x SRS-2 t-score), the same points coloured by:
 #   (a) k-means Cluster (+ centroids)   (b) Autism / IDD / NT
 #   (c) ADHD vs no ADHD                 (d) Male / Female
 #
-# Curated is the priority regime → reads the curated k-means table, writes to
-# outputs/curated/figures/. Saves the 2x2 panel + each panel as its own PDF.
+# Curated is the priority regime → reads the curated k-means table, writes
+# flat to outputs/figures/ (no curated/frozen distinction in these
+# filenames). Saves the 2x2 panel + each panel as its own PDF.
 #
-# Usage:  python3 10_cluster_scatter_panels.py [frozen]
+# Usage:  python3 11_cluster_scatter_panels.py [frozen]
 # =============================================================================
 
 import os
@@ -27,8 +28,10 @@ import config  # noqa: E402
 
 FROZEN = "frozen" in sys.argv[1:]
 TABLE = config.CLUSTERS_KMEANS_FROZEN if FROZEN else config.CLUSTERS_CURATED
-FIG_DIR = os.path.join(_script_dir, "..", "outputs",
-                       *(() if FROZEN else ("curated",)), "figures")
+# Curated is flat (current pipeline); frozen writes to its own self-contained
+# legacy/ location since these filenames carry no curated/frozen suffix.
+FIG_DIR = (os.path.join(_script_dir, "..", "..", "legacy", "1_clustering", "outputs", "figures")
+           if FROZEN else os.path.join(_script_dir, "..", "outputs", "figures"))
 FIG_DIR = os.path.normpath(FIG_DIR)
 os.makedirs(FIG_DIR, exist_ok=True)
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 Run the cluster-genetic pipelines (3_cluster_genetic_analysis, 14 scripts;
-plus the cluster-aware 2_genetic_analysis/03_carrier_freq_or_clusters.py)
+plus the cluster-aware 3_cluster_genetic_analysis/1_carrier_freq_or_clusters.py)
 for each clustering method ∈ {kmeans, ward, gmm} from the curated data.
 
 Optional --autism-only flag uses the autism-only clusterings produced by
-04_run_clustering.py --autism-only.
+4_run_clustering.py --autism-only.
 
 For each method:
   1. Swap `1_clustering/outputs/tables/cluster_assignments.csv` to the
@@ -27,6 +27,7 @@ Final state after running both modes (--autism-only and default):
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -40,14 +41,16 @@ AUTISM_ONLY = _args.autism_only
 TAG = "curated_autism" if AUTISM_ONLY else "curated"
 print(f"=== Mode: {'AUTISM-ONLY' if AUTISM_ONLY else 'ALL POPULATIONS'} (tag={TAG}) ===")
 
-PY = "/usr/local/bin/python3.11"
-ROOT = Path("/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource")
-SIBLING = Path("/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results/dataset_paper/dataframes")
+PY = os.environ.get("LEAP_INOVAND_PYTHON", "python3.11")
+ROOT = Path(__file__).resolve().parents[2]
+SIBLING = ROOT.parent / "eeg_mri-pipeline" / "results" / "dataset_paper" / "dataframes"
 
 LIVE_SIBLING = SIBLING / "df_clusters_complete_kmeans.csv"
 LIVE_LOCAL_ASSIGN = ROOT / "1_clustering" / "outputs" / "tables" / "cluster_assignments.csv"
 LIVE_LOCAL_INDIV  = ROOT / "1_clustering" / "outputs" / "tables" / "individuals_metrics_with_clusters.csv"
-CURATED_DIR = ROOT / "1_clustering" / "outputs" / TAG / "tables"
+# Curated tables are flat; the autism-only variant lives in its own
+# cluster_autism/ subtree (not the "curated_autism" TAG name).
+CURATED_DIR = ROOT / "1_clustering" / "outputs" / ("cluster_autism" if AUTISM_ONLY else "") / "tables"
 
 METHODS = ["kmeans", "ward", "gmm"]
 
@@ -58,7 +61,7 @@ METHODS = ["kmeans", "ward", "gmm"]
 # identical outputs regardless of which method we ran — they're not
 # re-executed here.
 GENETIC_SCRIPTS = [
-    ROOT / "2_genetic_analysis/scripts/03_carrier_freq_or_clusters.py",
+    ROOT / "3_cluster_genetic_analysis/scripts/1_carrier_freq_or_clusters.py",
     ROOT / "3_cluster_genetic_analysis/scripts/01_legacy_clusters.py",
     ROOT / "3_cluster_genetic_analysis/scripts/03_legacy_clusters_nt_c1.py",
     ROOT / "3_cluster_genetic_analysis/scripts/05_hg38_legacy_clusters.py",

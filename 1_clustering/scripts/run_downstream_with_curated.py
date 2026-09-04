@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Run every cluster-aware downstream pipeline using the curated cluster
-assignments (LEAP + INOVAND + INFOR, see 04_run_clustering.py).
+assignments (LEAP + INOVAND + INFOR, see 4_run_clustering.py).
 
 Strategy (preserves paper-data outputs):
   1. For each section, rename outputs/ → outputs_paper/ (idempotent).
@@ -27,20 +27,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-PY = "/usr/local/bin/python3.11"
+PY = os.environ.get("LEAP_INOVAND_PYTHON", "python3.11")
 RSCRIPT = "Rscript"
-ROOT = Path("/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource")
-SIBLING = Path("/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results/dataset_paper/dataframes")
+ROOT = Path(__file__).resolve().parents[2]
+SIBLING = ROOT.parent / "eeg_mri-pipeline" / "results" / "dataset_paper" / "dataframes"
 
 # Files we will swap (existing → backup, curated → existing)
 SWAPS = [
     {
         "live": ROOT / "1_clustering" / "outputs" / "tables" / "cluster_assignments.csv",
-        "curated": ROOT / "1_clustering" / "outputs" / "curated" / "tables" / "cluster_assignments_curated.csv",
+        "curated": ROOT / "1_clustering" / "outputs" / "tables" / "cluster_assignments_curated.csv",
     },
     {
         "live": ROOT / "1_clustering" / "outputs" / "tables" / "individuals_metrics_with_clusters.csv",
-        "curated": ROOT / "1_clustering" / "outputs" / "curated" / "tables" / "individuals_metrics_with_clusters_curated.csv",
+        "curated": ROOT / "1_clustering" / "outputs" / "tables" / "individuals_metrics_with_clusters_curated.csv",
     },
     {
         "live": SIBLING / "df_clusters_complete_kmeans.csv",
@@ -53,7 +53,6 @@ SECTION_OUTPUT_DIRS = [
     ROOT / "2_genetic_analysis" / "outputs",
     ROOT / "3_cluster_genetic_analysis" / "outputs",
     ROOT / "5_cluster_anatomical_analysis" / "outputs",
-    ROOT / "5_cluster_anatomical_analysis" / "curated" / "outputs",
     ROOT / "7_cluster_functional_analysis" / "outputs",
     ROOT / "9_cluster_eeg_analysis" / "outputs",
     ROOT / "10_clinical_analysis" / "outputs",
@@ -62,14 +61,14 @@ SECTION_OUTPUT_DIRS = [
 # Downstream commands to run, in order
 COMMANDS = [
     # 2_genetic_analysis (cluster-aware only)
-    [PY, str(ROOT / "2_genetic_analysis" / "scripts" / "03_carrier_freq_or_clusters.py")],
+    [PY, str(ROOT / "3_cluster_genetic_analysis" / "scripts" / "1_carrier_freq_or_clusters.py")],
     # 3_cluster_genetic_analysis (no orchestrator — run all 14)
     *[[PY, str(p)] for p in sorted((ROOT / "3_cluster_genetic_analysis" / "scripts").glob("0?_*.py"))
       if p.name.startswith(("01_", "02_", "03_", "04_", "05_", "06_", "07_", "08_", "09_"))],
     *[[PY, str(p)] for p in sorted((ROOT / "3_cluster_genetic_analysis" / "scripts").glob("1?_*.py"))],
-    # 5_cluster_anatomical (orchestrators)
+    # 5_cluster_anatomical (current orchestrator; the legacy frozen one lives in
+    # legacy/5_cluster_anatomical_analysis/ and isn't part of this curated-data run)
     [PY, str(ROOT / "5_cluster_anatomical_analysis" / "scripts" / "run_cluster_anatomical_analysis.py")],
-    [PY, str(ROOT / "5_cluster_anatomical_analysis" / "curated" / "scripts" / "run_cluster_anatomical_analysis_v2.py")],
     # 7_cluster_functional
     [PY, str(ROOT / "7_cluster_functional_analysis" / "scripts" / "run_cluster_functional_analysis.py")],
     # 9_cluster_eeg

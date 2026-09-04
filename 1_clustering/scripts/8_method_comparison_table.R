@@ -1,7 +1,7 @@
 # =============================================================================
 # Supplementary table — clustering method comparison (k-means vs GMM vs Ward)
 # =============================================================================
-# Companion to 06_method_comparison.py / 05_cluster_stability.py: assembles the
+# Companion to 7_method_comparison.py / 5_cluster_stability.py: assembles the
 # per-method internal-validity and resampling-stability metrics they wrote into
 # outputs/tables/ and renders a publication-ready gt table (CSV + PDF), with the
 # best value in each column highlighted in bold.
@@ -10,8 +10,8 @@
 #   Stability         : bootstrap ARI (80% subsample), % subjects with modal
 #                       assignment >= 0.90, mean per-cluster Jaccard
 #
-# Run:  Rscript 06b_method_comparison_table.R [curated]
-#   curated  → read outputs/curated/tables/ and write *_curated.{csv,pdf}
+# Run:  Rscript 8_method_comparison_table.R [curated]
+#   curated  → write *_curated.{csv,pdf} (reads the flat outputs/tables/)
 # =============================================================================
 
 library(readr)
@@ -26,14 +26,12 @@ SCRIPT_DIR <- if (length(script_path)) dirname(normalizePath(script_path)) else 
 user_args <- commandArgs(trailingOnly = TRUE)
 CURATED <- any(user_args %in% c("curated", "--curated"))
 
-# curated is the priority regime; its metrics live under outputs/curated/.
-TABLES_DIR <- normalizePath(file.path(
-  SCRIPT_DIR, "..", "outputs", if (CURATED) "curated" else ".", "tables"))
+TABLES_DIR <- normalizePath(file.path(SCRIPT_DIR, "..", "outputs", "tables"))
 OUT_SUFFIX <- if (CURATED) "_curated" else ""
 
 BOOT_FRACTION <- 0.8   # subsample fraction reported for bootstrap ARI
 
-# --- read the metric tables 06/05 already produced ---------------------------
+# --- read the metric tables 7/5 already produced ---------------------------
 internal <- read_csv(file.path(TABLES_DIR, "method_comparison_internal_indices.csv"),
                      show_col_types = FALSE)
 stab     <- read_csv(file.path(TABLES_DIR, "stability_summary_all_methods.csv"),

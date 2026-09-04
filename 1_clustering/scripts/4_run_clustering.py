@@ -1,30 +1,26 @@
 #!/usr/bin/env python3
 # =============================================================================
-# 04 - Run Clustering (k=3) — CURATED (current, priority regime)
+# 4 - Run Clustering (k=3) — CURATED (current, priority regime)
 # =============================================================================
-# Reads from the curated per-cohort clinical TSVs on Imaging5 (see
-# eeg_mri-pipeline/CLAUDE.md):
+# Reads the cohort table written by 1_load_cohort.py (LEAP, INOVAND, INFOR
+# curated clinical data, already cleaned and combined).
 #
-#   LEAP:    /Volumes/Imaging5/EEG_MRI-MF/LEAP/_clinical_data/curated/LEAP_clinical_curated_t1.tsv
-#   INOVAND: /Volumes/Imaging5/EEG_MRI-MF/INOVAND/_clinical_data/curated/INOVAND_clinical_curated.tsv
-#   INFOR:   /Volumes/Imaging5/EEG_MRI-MF/INFOR/_clinical_data/curated/INFOR_clinical_curated.tsv
-#
-# INFOR is collapsed into the INOVAND cohort. Features are standardised
-# IQ × SRS-2 (IQ = total_IQ fillna performance_IQ), restricted to
-# `relation_to_proposant == "participant"`, deduplicated by ID, with no
-# EXCLUDED_IDS filter (since the original 3 IDs only mattered for matching
-# the paper's frozen df_clusters_complete.csv; this script is a fresh
+# Features are standardised IQ × SRS-2 (IQ = total_IQ fillna performance_IQ),
+# restricted to `relation_to_proposant == "participant"`, deduplicated by ID,
+# with no EXCLUDED_IDS filter (since the original 3 IDs only mattered for
+# matching the paper's frozen reference table; this script is a fresh
 # clustering on the current data).
 #
-# For the original frozen/paper-reproduction run (deprecated
-# individuals_metrics.tsv, no EXCLUDED_IDS exemption), see
-# legacy/1_clustering/04_run_clustering_frozen.py. Same methodology:
+# For the original frozen/paper-reproduction run, see the local (not
+# publicly released) frozen pipeline. Same methodology:
 #   - Primary: K-means (n_init=25, random_state=42).
 #   - Sensitivity: Ward (op.heatmap convention) and GMM (covariance_type="full").
 #   - Labels relabeled by descending cluster size.
 #
-# Outputs go to 1_clustering/outputs/curated/ to avoid overwriting the
-# paper-aligned outputs.
+# Outputs go to the flat 1_clustering/outputs/{figures,tables}/ (autism-only
+# mode: outputs/cluster_autism/{figures,tables}/) -- filenames carry a
+# _curated / _curated_autism suffix so they never collide with frozen's
+# unqualified filenames in the same directories.
 # =============================================================================
 
 import argparse
@@ -51,7 +47,7 @@ _parser = argparse.ArgumentParser(description=__doc__)
 _parser.add_argument(
     "--autism-only", action="store_true",
     help="Cluster only on PopulationS1 == 'Autism' subjects. Non-autistic "
-         "subjects get NaN cluster labels. Outputs go to outputs/curated_autism/ "
+         "subjects get NaN cluster labels. Outputs go to outputs/cluster_autism/ "
          "and sibling files become df_clusters_complete_curated_autism{,_ward,_gmm}.csv.",
 )
 _args = _parser.parse_args()
@@ -60,13 +56,12 @@ AUTISM_ONLY = _args.autism_only
 # or SRS-2 at T1, the script falls back to T2 then T3 (earliest-wins). This
 # adds ~12 LEAP participants vs T1-only loading and the new sample is more
 # representative of the full LEAP cohort.
-_RUN_TAG = "curated_autism" if AUTISM_ONLY else "curated"
 print(f"=== Mode: {'AUTISM-ONLY' if AUTISM_ONLY else 'ALL POPULATIONS'} "
       f"(LEAP T1→T2→T3 backfill: ON) ===")
 
 
 # -----------------------------------------------------------------------------
-# Clustering helpers (identical to 04_run_clustering.py)
+# Clustering helpers
 # -----------------------------------------------------------------------------
 def _label_by_size_desc(raw_labels, k):
     """Relabel cluster IDs by descending cluster size: largest → 0 (= C1)."""
@@ -97,9 +92,11 @@ def _gmm_assignments(X_scaled, k, random_state=42):
 
 
 # -----------------------------------------------------------------------------
-# Curated clinical data loading
+# Curated clinical data -- loaded by 1_load_cohort.py. DATA_BASE_PATH /
+# CURATED_FILES are still needed below for the sibling-repo MRI_ID patching,
+# which re-reads the raw INFOR/INOVAND TSVs directly.
 # -----------------------------------------------------------------------------
-DATA_BASE_PATH = "/Volumes/Imaging5/EEG_MRI-MF"
+DATA_BASE_PATH = os.environ.get("LEAP_INOVAND_CURATED_DATA", "/Volumes/Imaging5/EEG_MRI-MF")
 
 CURATED_FILES = {
     # cohort_label : (path_relative_to_DATA_BASE_PATH, source_tag)
@@ -110,128 +107,20 @@ CURATED_FILES = {
 }
 
 
-def _load_curated(path, source_tag):
-    """Load one curated clinical TSV, filter to participants, compute IQ."""
-    if not os.path.exists(path):
-        print(f"  WARNING: {path} not found — skipping.")
-        return pd.DataFrame()
-    df = pd.read_csv(path, sep="\t", low_memory=False)
-    df = df.drop_duplicates(subset=["ID"])
-    if "relation_to_proposant" in df.columns:
-        df = df[df["relation_to_proposant"] == "participant"].copy()
-    # Full-scale IQ with performance_IQ fallback (matches the paper pipeline)
-    df["IQ"] = df["total_IQ"].fillna(df.get("performance_IQ", np.nan))
-    # Carry forward the population/diagnosis columns under their canonical names.
-    if "population" in df.columns and "Population1" not in df.columns:
-        df["Population1"] = df["population"]
-    if "Population1" in df.columns and "PopulationS1" not in df.columns:
-        df["PopulationS1"] = df["Population1"]
-    # Normalise PopulationS1 to the convention expected by downstream cluster-
-    # aware scripts: {"Autism", "NT", "IDD"}.  The curated TSVs split autism
-    # into "Autism with IDD" / "Autism without IDD" — collapse them.
-    if "PopulationS1" in df.columns:
-        df["PopulationS1_raw"] = df["PopulationS1"]
-        df["PopulationS1"] = (
-            df["PopulationS1"].astype(str)
-              .str.replace("Autism with IDD", "Autism", regex=False)
-              .str.replace("Autism without IDD", "Autism", regex=False)
-              .str.replace("TD", "NT", regex=False)
-              .str.replace(r"^ID$", "IDD", regex=True)
-        )
-
-    # Normalise MRI_ID for INOVAND/INFOR (curated TSV stores it as a float
-    # string like "894.0"; v2 join expects an int-parseable token, optionally
-    # prefixed with "sub-").  Convert numeric MRI_IDs to clean ints; leave
-    # "sub-XXXX" strings (INFOR) untouched.
-    if "MRI_ID" in df.columns:
-        def _norm_mri(x):
-            s = str(x).strip()
-            if s.lower() in ("", "nan"):
-                return None
-            if s.startswith("sub-"):
-                return s
-            try:
-                return str(int(float(s)))
-            except (TypeError, ValueError):
-                return s
-        df["MRI_ID"] = df["MRI_ID"].apply(_norm_mri)
-    # Two cohort columns: keep the original (e.g. "LEAP_T1") under
-    # `cohort_raw` and overwrite the canonical `cohort` to match the convention
-    # used by downstream cluster-aware scripts (`LEAP`, `INOVAND`).
-    if "cohort" in df.columns:
-        df["cohort_raw"] = df["cohort"]
-    df["cohort"] = source_tag
-    df["Cohort"] = source_tag
-    df["ID"] = df["ID"].astype(str)
-    print(f"  Loaded {len(df):>5} participant rows from {os.path.basename(path)}  → tagged '{source_tag}'")
-    return df
-
-
-def _load_leap_with_wave_backfill():
-    """Load LEAP T1/T2/T3; for each ID keep the EARLIEST wave with complete
-    IQ + SRS_tscore. Tagged with cohort = 'LEAP' (wave-of-origin in
-    `leap_wave_used` column). Returns a DataFrame with one row per ID."""
-    waves = [("t1", "LEAP/_clinical_data/curated/LEAP_clinical_curated_t1.tsv"),
-             ("t2", "LEAP/_clinical_data/curated/LEAP_clinical_curated_t2.tsv"),
-             ("t3", "LEAP/_clinical_data/curated/LEAP_clinical_curated_t3.tsv")]
-    frames = []
-    print("[--leap-backfill-waves] Loading T1, T2, T3 with priority backfill...")
-    for wave_id, rel in waves:
-        p = os.path.join(DATA_BASE_PATH, rel)
-        df = _load_curated(p, source_tag="LEAP")
-        if df.empty:
-            continue
-        # Keep only rows where IQ AND SRS-2 are both available
-        has_iq = pd.to_numeric(df["IQ"], errors="coerce").notna()
-        has_srs = pd.to_numeric(df.get("SRS_tscore", np.nan), errors="coerce").notna()
-        df = df[has_iq & has_srs].copy()
-        df["_wave_order"] = {"t1": 0, "t2": 1, "t3": 2}[wave_id]
-        df["leap_wave_used"] = wave_id.upper()
-        print(f"    {wave_id.upper()}: {len(df)} participants with complete IQ+SRS")
-        frames.append(df)
-    if not frames:
-        return pd.DataFrame()
-    all_df = pd.concat(frames, ignore_index=True)
-    # Priority backfill: T1 wins, else T2, else T3.
-    out = (all_df.sort_values(["ID", "_wave_order"])
-                 .drop_duplicates(subset=["ID"], keep="first")
-                 .drop(columns="_wave_order"))
-    breakdown = out["leap_wave_used"].value_counts().to_dict()
-    print(f"  → Backfilled LEAP: {len(out)} unique participants "
-          f"(wave-of-origin: {breakdown})")
-    return out
-
-
-def load_all_cohorts():
-    """Load LEAP (T1→T2→T3 backfill), INOVAND, INFOR; collapse INFOR into
-    INOVAND; dedup by ID."""
-    frames = []
-    for label, (rel_path, tag) in CURATED_FILES.items():
-        if label == "LEAP":
-            df = _load_leap_with_wave_backfill()
-        else:
-            full_path = os.path.join(DATA_BASE_PATH, rel_path)
-            df = _load_curated(full_path, source_tag=tag)
-        if not df.empty:
-            frames.append(df)
-    if not frames:
-        raise FileNotFoundError(
-            f"No curated clinical TSVs found under {DATA_BASE_PATH}. "
-            "Ensure the Imaging5 volume is mounted."
-        )
-    combined = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["ID"])
-    print(f"\n  Combined unique IDs: {len(combined):,}   (Cohort tags: "
-          f"{combined['Cohort'].value_counts().to_dict()})")
-    return combined
-
-
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_BASE = os.path.normpath(os.path.join(_script_dir, "..", "outputs", _RUN_TAG))
-FIGURES_DIR = os.path.join(OUTPUT_BASE, "figures")
-TABLES_DIR  = os.path.join(OUTPUT_BASE, "tables")
+_SECTION_OUTPUTS = os.path.normpath(os.path.join(_script_dir, "..", "outputs"))
+# Flat and unqualified -- this is the current/default pipeline, so
+# outputs/{figures,tables}/ is simply its home (no "curated" folder needed).
+# Filenames carry a _curated / _curated_autism suffix so there's no collision
+# with frozen's unqualified filenames in the same directories. Autism-only
+# is a different clustering run (not a different regime), so it gets its
+# own cluster_autism/ subtree instead of a filename-only distinction.
+_OUTPUT_ROOT = os.path.join(_SECTION_OUTPUTS, "cluster_autism") if AUTISM_ONLY else _SECTION_OUTPUTS
+FIGURES_DIR = os.path.join(_OUTPUT_ROOT, "figures")
+TABLES_DIR  = os.path.join(_OUTPUT_ROOT, "tables")
 os.makedirs(FIGURES_DIR, exist_ok=True)
 os.makedirs(TABLES_DIR, exist_ok=True)
 
@@ -253,8 +142,12 @@ RANDOM_STATE = 42
 # -----------------------------------------------------------------------------
 # Data preparation
 # -----------------------------------------------------------------------------
-print("=== Loading curated clinical data (LEAP + INOVAND + INFOR) ===")
-df = load_all_cohorts()
+COHORT_INPUT = os.path.join(_SECTION_OUTPUTS, "tables", "cohort_curated.csv")
+if not os.path.exists(COHORT_INPUT):
+    raise FileNotFoundError(f"{COHORT_INPUT} not found. Run 1_load_cohort.py first.")
+print(f"=== Loading cohort table: {COHORT_INPUT} ===")
+df = pd.read_csv(COHORT_INPUT, low_memory=False)
+df["ID"] = df["ID"].astype(str)
 
 clinical_features = ["IQ", "SRS_tscore"]
 # Make sure both clinical features exist (and are numeric)
@@ -451,4 +344,4 @@ if os.path.exists(SIBLING_REF_FILE):
 else:
     print(f"  WARNING: {SIBLING_REF_FILE} not found — skipping sibling-repo propagation.")
 
-print("\nDone. Outputs in:", OUTPUT_BASE)
+print(f"\nDone. Tables in: {TABLES_DIR}\n      Figures in: {FIGURES_DIR}")

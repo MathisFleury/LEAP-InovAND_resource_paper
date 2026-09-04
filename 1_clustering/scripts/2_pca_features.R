@@ -1,5 +1,5 @@
 # =============================================================================
-# 01 - PCA on Clinical Features
+# 2 - PCA on Clinical Features
 # =============================================================================
 # Principal component analysis to identify features explaining most variance.
 # Used to justify focusing on IQ and SRS for clustering (see paper Methods).
@@ -8,24 +8,25 @@
 # =============================================================================
 
 # --- Configuration ---
-# Curated (current, priority regime) by default -- reads the curated cluster
-# table written by 04_run_clustering.py. No frozen/deprecated-data
-# fallback here: for the paper-reproduction run, see
-# legacy/1_clustering/01_pca_features_frozen.R, which sets PCA_INPUT_CSV to
-# the deprecated individuals_metrics.tsv (see root CLAUDE.md) and invokes
-# this same engine -- kept out of this file so that reference isn't visible
-# in the main tree.
-DEFAULT_INPUT_CSV <- file.path(getwd(), "..", "outputs", "curated", "tables",
-                               "individuals_metrics_with_clusters_curated.csv")
+# Curated (current, priority regime) by default -- reads the cohort table
+# written by 1_load_cohort.py. No frozen/deprecated-data fallback here: the
+# paper-reproduction run lives in the local (not publicly released) frozen
+# pipeline, which points PCA_INPUT_CSV at its own reference table and
+# invokes this same engine.
+DEFAULT_INPUT_CSV <- file.path(getwd(), "..", "outputs", "tables", "cohort_curated.csv")
 INDIVIDUALS_METRICS <- Sys.getenv("PCA_INPUT_CSV", unset = DEFAULT_INPUT_CSV)
 if (!file.exists(INDIVIDUALS_METRICS)) {
-  stop("Input not found: ", INDIVIDUALS_METRICS, "\nRun 04_run_clustering.py first",
+  stop("Input not found: ", INDIVIDUALS_METRICS, "\nRun 1_load_cohort.py first",
        " (or set PCA_INPUT_CSV to point elsewhere).")
 }
-OUTPUT_SUBDIR <- Sys.getenv("PCA_OUTPUT_SUBDIR", unset = "curated")
-OUTPUT_BASE <- normalizePath(file.path(getwd(), "..", "outputs", OUTPUT_SUBDIR), mustWork = FALSE)
-FIGURES_DIR <- file.path(OUTPUT_BASE, "figures")
-TABLES_DIR <- file.path(OUTPUT_BASE, "tables")
+# FIGURES_DIR / TABLES_DIR default to the flat, unqualified outputs/ -- curated
+# is the current pipeline, so that's simply its home. The frozen wrapper
+# (legacy/1_clustering/1_pca_features_frozen.R) overrides both to keep its
+# own figures/tables self-contained instead of colliding with these.
+FIGURES_DIR <- Sys.getenv("PCA_FIGURES_DIR",
+                          unset = normalizePath(file.path(getwd(), "..", "outputs", "figures"), mustWork = FALSE))
+TABLES_DIR <- Sys.getenv("PCA_TABLES_DIR",
+                         unset = normalizePath(file.path(getwd(), "..", "outputs", "tables"), mustWork = FALSE))
 dir.create(FIGURES_DIR, recursive = TRUE, showWarnings = FALSE)
 dir.create(TABLES_DIR, recursive = TRUE, showWarnings = FALSE)
 
@@ -169,4 +170,4 @@ for (i in seq_along(combinations)) {
   }
 }
 write.csv(sample_sizes, file.path(TABLES_DIR, "sample_sizes_by_variable_combination.csv"), row.names = FALSE)
-cat("\nDone. Outputs in:", OUTPUT_BASE, "\n")
+cat("\nDone. Tables in:", TABLES_DIR, "\n      Figures in:", FIGURES_DIR, "\n")

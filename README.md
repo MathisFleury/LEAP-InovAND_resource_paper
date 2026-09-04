@@ -21,21 +21,20 @@ block separately, clearly labelled.
 2_genetic_analysis/             # Rare-variant carrier annotation & ORs (population)
 3_cluster_genetic_analysis/     # Rare-variant ORs and PGS by cluster
 4_anatomical_analysis/          # Structural MRI: autism vs NT, IQ/SRS, LOEUF
-  └── curated/                  #   current pipeline: QC+ComBat+regressed table,
-                                 #   Euler QC, clinical x MRI, Figure 7 composite
-5_cluster_anatomical_analysis/  # Structural MRI by cluster
-  └── curated/                  #   current pipeline (Figure 6a composite, gt tables)
-6_functional_analysis/          # fMRI connectivity: autism vs NT (legacy XCP-D 0.8 pipeline)
-6-1_functional_analysis_concat/ # fMRI sensitivity: concatenated INOVAND runs (>=6 min)
-6-2_functional_analysis/        # fMRI connectivity, CURRENT pipeline (XCP-D 0.11, primary
-                                 #   regime = nogsr_concat) -- Figures 3/6b, QC
+                                 #   (QC+ComBat+regressed table, Euler QC,
+                                 #   clinical x MRI, Figure 7 composite)
+5_cluster_anatomical_analysis/  # Structural MRI by cluster (Figure 6a composite, gt tables)
+6_functional_analysis/          # fMRI connectivity: autism vs NT
+                                 #   concat/     -- CURRENT pipeline (XCP-D 0.11, primary
+                                 #                  regime = nogsr_concat) -- Figures 3/6b, QC
+                                 #   non_concat/ -- legacy XCP-D 0.8 pipeline, secondary analysis
 7_cluster_functional_analysis/  # fMRI connectivity by cluster (incl. Figure 6b chain)
 8_eeg_analysis/                 # EEG alpha peak & power bands: autism vs NT
 9_cluster_eeg_analysis/         # EEG by cluster
 10_clinical_analysis/           # Psychomotor milestones, IQ/SRS/cohort figures, verbal status
 11_age_sex_analysis/            # Diagnosis x age / x sex interaction + age-binned checks
-legacy/                         # Frozen-only scripts with zero downstream dependents,
-                                 #   moved out of their section (currently: 1_clustering/)
+legacy/                         # Superseded/frozen pipelines, moved out of their section
+                                 #   (local only, not part of this public release)
 _resources/                     # Cross-section figure/table builders + atlas builder
 ```
 
@@ -63,8 +62,8 @@ export LEAP_GENELIST_FILE="/path/to/hgnc_genelist.txt"  # optional
 ```
 
 Cluster-aware sections (3, 5, 7, 9, 10) read cluster labels written by
-`1_clustering/scripts/04_run_clustering.py` (curated) or
-`legacy/1_clustering/04_run_clustering_frozen.py` (frozen). Run section 1 first.
+`1_clustering/scripts/4_run_clustering.py` (curated) or the local, not
+publicly released, frozen pipeline. Run section 1 first.
 
 ## Dependencies
 
@@ -89,7 +88,7 @@ Clinical clustering based on IQ and SRS-2 dimensions.
   (`n_init=25`, `random_state=42`). The original paper used hierarchical
   Ward; the present resource adopts K-means as the primary method based
   on a reviewer-requested comparative analysis (see
-  `06_method_comparison.py`) — k-means is more stable under bootstrap and
+  `7_method_comparison.py`) — k-means is more stable under bootstrap and
   produces better internal indices. Ward and GMM are retained as
   sensitivity analyses.
 - **Autism-only clustering** (Reviewer #4.6) and a **reval**
@@ -99,16 +98,17 @@ Clinical clustering based on IQ and SRS-2 dimensions.
 cd 1_clustering && ./run_all.sh
 ```
 
-Runs only the **curated** regime (clustering → PCA → stability → method
-comparison → autism-only sensitivity → scatter panels) — no frozen/
-deprecated-data reference anywhere in this tree. `04_run_clustering.py`,
-`01_pca_features.R`, and `05_cluster_stability.py` are curated-only here;
-`06_method_comparison.py` still takes a `curated` arg since it's a
+Runs only the **curated** regime (load cohort → PCA → clustering →
+stability → method comparison → autism-only sensitivity → scatter panels)
+— no frozen/deprecated-data reference anywhere in this tree. Scripts are
+numbered in run order (`1`–`11`); PCA (`2`) runs before clustering (`4`)
+since both read the cohort table `1_load_cohort.py` writes, so the
+feature-justification step doesn't depend on the clustering step's output.
+`7_method_comparison.py` still takes a `curated` arg since it's a
 comparison and needs both regimes' data, but never touches the deprecated
-path directly. Every frozen/paper-reproduction script — including the
-frozen `04_run_clustering.py`/`06_method_comparison.py` counterparts —
-lives in `legacy/1_clustering/` with its own, fully self-contained
-`run_all.sh`. Three cross-section batch drivers
+path directly. Every frozen/paper-reproduction script lives in the local,
+not publicly released, `legacy/1_clustering/` with its own, fully
+self-contained `run_all.sh`. Three cross-section batch drivers
 (`run_anatomical_with_other_methods.py`,
 `run_downstream_with_curated.py`, `run_genetics_with_other_methods.py`)
 rerun the relevant downstream sections once per clustering method
@@ -117,15 +117,16 @@ rerun the relevant downstream sections once per clustering method
 ## 2. Genetic analysis
 
 Rare-variant carrier analysis across gene lists (HCNDD, SPARK/SFARI,
-EAGLE, SynGO, ChromEpiTF) and ancestries.
+EAGLE, SynGO, ChromEpiTF) and ancestries, on the **gnomAD v4** data used
+in the paper. Population-level only — cluster-level analysis lives in
+section 3 (matches the anatomical/functional section convention). The
+earlier hg19/hg38-v2 pipeline is superseded and lives in
+`legacy/2_genetic_analysis/` (local only, not part of this public release).
 
-- **Carrier annotation**: deletions (validated CNVs), LoF (LOFTEE HC),
-  pathogenic missenses (AlphaMissense) on constrained genes — hg19/gnomAD
-  v2 (`01`), hg38/gnomAD v2 (`01b`), and gnomAD v4 (`05`, current priority
-  regime).
-- **Carrier frequencies & odds ratios**: Fisher exact vs NT, FDR-
-  corrected, stratified by ancestry (EUR/non-EUR), cohort
-  (InovAND/LEAP), and population grouping.
+- **Carrier annotation, frequencies & odds ratios**: deletions (validated
+  CNVs), LoF (LOFTEE HC), pathogenic missenses (AlphaMissense) on
+  constrained genes; Fisher exact vs NT, FDR-corrected, stratified by
+  ancestry (EUR/PAN), constraint definition, and variant combination.
 - **IQ x PGS-intelligence x LOEUF** scatter (cluster-coloured).
 
 ```bash
@@ -137,11 +138,13 @@ script-by-script output table.
 
 ## 3. Cluster-level genetic analysis
 
-Carrier frequencies, odds ratios, and PGS by clinical cluster, across
-multiple clustering choices (Ward / K-means / GMM / manual cluster-source
-strategies), NT pool definitions (full NT vs C1-only), and genome builds
-(hg19 / hg38 / gnomAD v4, the current priority regime — see `15`–`18`).
-Includes external SPARK LoF replication.
+Carrier frequencies, odds ratios, and PGS by clinical cluster, on gnomAD v4
+data stratified by the current curated k-means clustering. Every other
+clustering choice explored during review (Ward/frozen k-means, GMM, manual
+cluster-source strategies, NT pool definitions, hg19/hg38 genome builds)
+plus external SPARK LoF replication is superseded and lives in
+`legacy/3_cluster_genetic_analysis/` (local only, not part of this public
+release).
 
 ```bash
 cd 3_cluster_genetic_analysis && ./run_all.sh
@@ -151,43 +154,68 @@ cd 3_cluster_genetic_analysis && ./run_all.sh
 
 Structural MRI (FreeSurfer-derived) for autism vs NT, IQ/SRS correlates,
 LOEUF carrier effects, and brain visualisations (ggseg + subcortical
-yabplot).
+yabplot), on the QC+ComBat+age/sex/eTIV-regressed FreeSurfer table used in
+the paper. Also covers Euler-number QC, LOEUF hg38 correlations/regression,
+clinical x MRI correlations, per-site/age-imbalance robustness checks, and
+the Figure 7 composite (`scripts/run_anatomical_analysis.py`, 21 steps).
+The earlier ComBat-only (no QC/regression) pipeline is superseded and lives
+in `legacy/4_anatomical_analysis/` (local only, not part of this public
+release).
 
 ```bash
 cd 4_anatomical_analysis && ./run_all.sh
 ```
 
-Runs the **curated** pipeline by default (`curated/scripts/run_anatomical_analysis_v2.py`
-— rebuilt on the QC+ComBat+age/sex/eTIV-regressed FreeSurfer table, plus
-Euler-number QC, LOEUF hg38 correlations/regression, clinical x MRI
-correlations, per-site/age-imbalance robustness checks, and the Figure 7
-composite), then the **frozen/paper-reproduction** pipeline (original
-ComBat-only table, no QC/regression).
-
 ## 5. Cluster anatomical MRI
 
 Structural MRI contrasts by cluster (t-stats, Cohen's d) plus ggseg and
-subcortical visualisations, including the Figure 6a composite grid.
+subcortical visualisations, including the Figure 6a composite grid, on the
+current curated k-means clustering. The earlier per-cluster pipeline
+(frozen k-means/Ward) is superseded and lives in
+`legacy/5_cluster_anatomical_analysis/` (local only, not part of this
+public release).
 
 ```bash
 cd 5_cluster_anatomical_analysis/scripts
-python3.11 run_cluster_anatomical_analysis.py       # frozen
+python3.11 run_cluster_anatomical_analysis.py
 # Optional: restrict NT pool to NT subjects with Cluster == 'C1'
 python3.11 run_cluster_anatomical_analysis.py --nt-c1
 
-cd ../curated/scripts
-python3.11 run_cluster_anatomical_analysis_v2.py    # curated (current)
+# Legacy frozen pipeline (local only, not part of this public release)
+cd ../../legacy/5_cluster_anatomical_analysis/scripts
+python3.11 run_cluster_anatomical_analysis.py
 ```
 
-## 6. Functional MRI (legacy)
+## 6. Functional MRI
 
-Functional connectivity, autism vs NT, on the original XCP-D 0.8
-preprocessing. Superseded for reporting by `6-2_functional_analysis/`
-below, but kept for the sensitivity/legacy-comparison checks it still
-answers.
+Functional connectivity, whole-group autism vs NT. Two self-contained,
+parallel analyses under one folder, differing in preprocessing (XCP-D
+version) and in whether runs are concatenated per subject before computing
+connectivity — see `6_functional_analysis/README.md`.
+
+**`6_functional_analysis/concat/`** (current, priority regime) — XCP-D
+v0.11. The manuscript's primary regime is `nogsr_concat` (run-concatenated,
+no global-signal-regression, >6 min; n=393 autism / 327 NT) — this is what
+`11_age_sex_analysis` and the reviewer-response numbers use.
 
 ```bash
-cd 6_functional_analysis/preprocessing
+cd 6_functional_analysis/concat && ./run_all.sh
+```
+
+Runs preprocessing (build connectivity → ComBat → regress → z-score) on
+`nogsr_concat`, the core edge/network-block/NBS analysis suite, the
+Figure 6b/3 brain-map chain, and QC (motion confound, sequence/ComBat SVM,
+FD x connectivity). `run_gsr_all_modes.sh` separately sweeps the other 8
+sensitivity variants (gsr, mixed, regfirst, per-cohort, anatomical-QC-pass)
+— run manually, not part of `run_all.sh` (it is a long sweep, not a single
+pipeline run).
+
+**`6_functional_analysis/non_concat/`** (secondary/historical analysis) —
+the original XCP-D 0.8 preprocessing, single best run per subject. Kept for
+the sensitivity/legacy-comparison checks it still answers.
+
+```bash
+cd 6_functional_analysis/non_concat/preprocessing
 python3.11 run_pipeline.py
 cd ../scripts
 python3.11 run_functional_analysis.py
@@ -200,50 +228,30 @@ legacy-vs-revised preprocessing QA comparison. See
 `6_functional_analysis/METHODS_functional_6_vs_7.md` for how this
 section's inference levels relate to section 7's per-cluster analysis.
 
-## 6-1. Functional MRI, concatenated-run sensitivity
-
-fMRI autism-vs-NT on runs concatenated per subject (≥6 min), for INOVAND
-(+ LEAP). Requires the `/Volumes/Imaging5` mount.
-
-```bash
-cd 6-1_functional_analysis_concat && ./run_all.sh
-```
-
-## 6-2. Functional MRI (current pipeline)
-
-Functional connectivity on XCP-D v0.11, self-contained (no dependency on
-section 6). The manuscript's primary regime is `nogsr_concat`
-(run-concatenated, no global-signal-regression, >6 min; n=393 autism / 327
-NT) — this is what `11_age_sex_analysis` and the reviewer-response numbers
-use.
-
-```bash
-cd 6-2_functional_analysis && ./run_all.sh
-```
-
-Runs preprocessing (build connectivity → ComBat → regress → z-score) on
-`nogsr_concat`, the core edge/network-block/NBS analysis suite, the
-Figure 6b/3 brain-map chain, and QC (motion confound, sequence/ComBat SVM,
-FD x connectivity). `run_gsr_all_modes.sh` separately sweeps the other 8
-sensitivity variants (gsr, mixed, regfirst, per-cohort, anatomical-QC-pass)
-— run manually, not part of `run_all.sh` (it is a long sweep, not a single
-pipeline run).
+An earlier, now-superseded attempt at a concatenated-runs pipeline lives in
+`legacy/6-1_functional_analysis_concat/` (local only, not part of this
+public release).
 
 ## 7. Cluster functional MRI
 
 Cluster-wise connectivity (inputs, Schaefer plots, network matrices,
 hyper-/hypo-connectivity counts, subcortical yabplot), including the
-Figure 6b per-cluster NBS chain.
+Figure 6b per-cluster NBS chain. Reads the same primary-regime connectivity
+table as section 6 (`6_functional_analysis/concat`'s `nogsr_concat`).
 
 ```bash
-cd 7_cluster_functional_analysis/scripts
-python3.11 run_cluster_functional_analysis.py
+cd 7_cluster_functional_analysis && ./run_all.sh
 ```
+
+See `7_cluster_functional_analysis/README.md`.
 
 ## 8. EEG
 
 Resting-state EEG, autism vs NT: alpha peak frequency and multi-band
-power.
+power. Alpha peak is rebuilt from curated raw features
+(`8_eeg_analysis/preprocessing/`); power spectrum has no raw counterpart on
+`$IMG5` and stays on the frozen sibling-repo table, with curated
+demographics grafted on. See `8_eeg_analysis/README.md`.
 
 ```bash
 cd 8_eeg_analysis/scripts
@@ -252,7 +260,8 @@ python3.11 run_eeg_analysis.py
 
 ## 9. Cluster EEG
 
-Same alpha-peak / band-power analyses by cluster.
+Same alpha-peak / band-power analyses by cluster, sharing section 8's
+preprocessing. See `9_cluster_eeg_analysis/README.md`.
 
 ```bash
 cd 9_cluster_eeg_analysis/scripts
@@ -275,7 +284,7 @@ cd 10_clinical_analysis && ./run_all.sh
 Diagnosis x age and diagnosis x sex interaction models (anatomical +
 functional), age-binned sanity checks, and age-composition sensitivity
 analyses ("The Effects of Age and Sex" manuscript section). Depends on
-`4_anatomical_analysis/curated/` directly (imports its config and script 01).
+`4_anatomical_analysis/` directly (imports its config and script 01).
 
 ```bash
 cd 11_age_sex_analysis && ./run_all.sh

@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 """
-EEG Autism vs TD Analysis Pipeline
+EEG Autism vs NT Analysis Pipeline (curated clinical, k-means).
 
-Runs the complete EEG analysis:
-1. Alpha peak analysis (Autism vs TD)
-2. Multi-band power analysis (Autism vs TD)
+0. Rebuild corrected alpha peak from raw $IMG5 features (preprocessing)
+1. Alpha peak — Autism vs NT
+2. Multi-band power — Autism vs NT
 """
 
-import os
 import sys
 import subprocess
 import time
 from pathlib import Path
 
 _SCRIPT_DIR = Path(__file__).parent
+_PREP = _SCRIPT_DIR.parent / "preprocessing"
+PY = "/usr/local/bin/python3.11"
 
 
-def run_script(script_path, description, python_executable=None):
+def run_script(script_path, description, python_executable=PY):
     print(f"\n{'='*60}")
     print(f"Running: {description}")
     print(f"{'='*60}")
@@ -39,8 +40,9 @@ def main():
     print("=" * 60)
 
     steps = [
-        (_SCRIPT_DIR / '01_eeg_alpha_peak_autism_td.py', 'EEG Alpha Peak Analysis', True, None),
-        (_SCRIPT_DIR / '02_eeg_power_bands_autism_td.py', 'EEG Multi-Band Power Analysis', True, None),
+        (_PREP / 'build_alpha_peak_corrected.py', 'Preprocessing: rebuild corrected alpha peak (raw)', True, PY),
+        (_SCRIPT_DIR / '01_eeg_alpha_peak_autism_td.py', 'EEG Alpha Peak Analysis', True, PY),
+        (_SCRIPT_DIR / '02_eeg_power_bands_autism_td.py', 'EEG Multi-Band Power Analysis', True, PY),
     ]
 
     results = {}

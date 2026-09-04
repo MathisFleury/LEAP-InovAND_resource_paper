@@ -1,47 +1,40 @@
 #!/usr/bin/env python3
 """
-EEG Alpha Peak Cluster Analysis
+EEG Alpha Peak — Autism k-means clusters vs NT.
 
-Analyzes individual alpha frequency comparing Autism clusters vs TD:
-- Loads combined corrected alpha peak data merged with cluster assignments
-- Age + sex regression and z-score normalization using TD as reference
-- Cluster vs TD statistical comparisons (t-test or Mann-Whitney, FDR-corrected)
-- Pairwise cluster comparisons
-- Violin plots with significance brackets
-
-Adapted from eeg_mri-pipeline/analysis/figures_papers/eeg_cluster_analysis/run_eeg_alpha_peak.py
+Consumes the curated, already-corrected alpha peak built by
+  8_eeg_analysis/preprocessing/build_alpha_peak_corrected.py
+(raw $IMG5 rebuild + curated demographics + curated k-means Cluster +
+full-sample regress/z-score). This script does NOT correct again — it filters
+to Autism-with-cluster + NT, then runs cluster-vs-NT and pairwise stats + plot.
 """
 
 import sys
 from pathlib import Path
 import pandas as pd
-import numpy as np
 from scipy import stats
 from itertools import combinations
 import statsmodels.stats.multitest as smm
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.linear_model import LinearRegression
 
 # =============================================================================
-# PATHS
+# PATHS  (k-means + curated only)
 # =============================================================================
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent  # 9_cluster_eeg_analysis/
+sys.path.insert(0, str(_SECTION_DIR.parent / "8_eeg_analysis" / "preprocessing"))
+from config import ALPHA_PEAK_CORRECTED  # noqa: E402
 
 FIG_DIR = _SECTION_DIR / 'outputs' / 'figures'
-
-EEG_MRI_RESULTS = Path('/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results')
-DATA_DIR = EEG_MRI_RESULTS / 'dataset_paper' / 'dataframes'
-DF_CLUSTERS_FILE = DATA_DIR / 'df_clusters_complete_kmeans.csv'
-ALPHA_PEAK_FILE = DATA_DIR / 'Alpha_peak_combined_corrected.csv'
-POWER_SPECTRUM_FILE = DATA_DIR / 'Power_spectrum_combined_corrected.csv'
+TABLES_DIR = _SECTION_DIR / 'outputs' / 'tables'
 
 # =============================================================================
 # COLORS / ORDER
 # =============================================================================
-CLUSTER_COLORS = {'C1': '#7A8B47', 'C2': '#ff9fa0', 'C3': '#e7ba52', 'NT': '#C1C2BC'}
-CLUSTER_ORDER = ['C1', 'C2', 'C3', 'NT']
+CLUSTER_COLORS = {'C1': '#7A8B47', 'C2': '#ff9fa0', 'C3': '#e7ba52',
+                  'NT': '#C1C2BC', 'IDD': '#D8A4CB'}
+CLUSTER_ORDER = ['C1', 'C2', 'C3', 'NT', 'IDD']
 
 
 # =============================================================================
@@ -49,108 +42,28 @@ CLUSTER_ORDER = ['C1', 'C2', 'C3', 'NT']
 # =============================================================================
 
 def load_alpha_peak_with_clusters() -> pd.DataFrame:
-    """Load and merge alpha peak data with cluster assignments.
+    """Load the corrected alpha peak; keep Autism-with-cluster + NT subjects.
 
-    Returns a DataFrame with columns:
-        ID, Cluster, PopulationS1, age_yrs, Sex, alpha_peak_corrected
-    filtered to Autism (with cluster) and TD subjects only.
+    Cluster / PopulationS1 / demographics are already curated k-means in the file.
     """
-    clusters = pd.read_csv(DF_CLUSTERS_FILE, low_memory=False)
-    alpha_peak_combined = pd.read_csv(ALPHA_PEAK_FILE)
-
-    print(f"Loaded {len(alpha_peak_combined)} subjects from combined alpha peak file")
-
-    # Align ID types for merging
-    alpha_peak_combined['ID'] = alpha_peak_combined['ID'].astype(str)
-    clusters_subset = clusters[['ID', 'Cluster', 'PopulationS1', 'age_yrs', 'Sex', 'control_status']].copy()
-    clusters_subset['ID'] = clusters_subset['ID'].astype(str)
-
-    # Inner join: keep subjects present in both files
-    alpha_peak = alpha_peak_combined.merge(clusters_subset, on='ID', how='inner',
-                                           suffixes=('', '_clusters'))
-
-    # Resolve duplicated columns from merge: prefer the clusters file values where available
-    for col in ['PopulationS1', 'age_yrs', 'Sex', 'control_status']:
-        col_clusters = f'{col}_clusters'
-        if col_clusters in alpha_peak.columns:
-            alpha_peak[col] = alpha_peak[col_clusters].combine_first(alpha_peak[col])
-            alpha_peak.drop(columns=[col_clusters], inplace=True)
-
-    # Rename population label TD -> NT for display
-    alpha_peak['PopulationS1'] = alpha_peak['PopulationS1'].replace('TD', 'NT')
-
-    # Keep only needed columns
-    keep_cols = ['ID', 'Cluster', 'PopulationS1', 'age_yrs', 'Sex',
-                 'alpha_peak_corrected', 'control_status']
-    keep_cols = [c for c in keep_cols if c in alpha_peak.columns]
-    alpha_peak = alpha_peak[keep_cols].copy()
-
-    # Quality filters
-    alpha_peak = alpha_peak.dropna(subset=['age_yrs'])
+    alpha_peak = pd.read_csv(ALPHA_PEAK_CORRECTED)
+    print(f"Loaded {len(alpha_peak)} subjects from {ALPHA_PEAK_CORRECTED.name}")
+    alpha_peak['ID'] = alpha_peak['ID'].astype(str)
     alpha_peak = alpha_peak[alpha_peak['alpha_peak_corrected'].notna()]
-    alpha_peak = alpha_peak[alpha_peak['alpha_peak_corrected'] != 0]
 
-    # Population filter: Autism with cluster OR NT
+    # Population filter: Autism split by cluster (C1/C2/C3), plus NT (reference)
+    # and IDD, each kept as its own category.
     autism_mask = (alpha_peak['PopulationS1'] == 'Autism') & alpha_peak['Cluster'].notna()
     td_mask = alpha_peak['PopulationS1'] == 'NT'
-    alpha_peak = alpha_peak[autism_mask | td_mask].reset_index(drop=True)
+    idd_mask = alpha_peak['PopulationS1'] == 'IDD'
+    alpha_peak = alpha_peak[autism_mask | td_mask | idd_mask].reset_index(drop=True)
 
-    try:
-        counts = alpha_peak['Cluster'].fillna('NT').value_counts(dropna=False).to_dict()
-        print(f"Subjects after filtering — {counts}")
-        pop_counts = alpha_peak['PopulationS1'].value_counts(dropna=False).to_dict()
-        print(f"By PopulationS1: {pop_counts}")
-    except Exception as exc:
-        print(f"Warning: could not compute counts: {exc}")
-
+    autism_by_cluster = (alpha_peak.loc[alpha_peak['PopulationS1'] == 'Autism', 'Cluster']
+                         .value_counts().to_dict())
+    n_nt = int((alpha_peak['PopulationS1'] == 'NT').sum())
+    n_idd = int((alpha_peak['PopulationS1'] == 'IDD').sum())
+    print(f"Autism by cluster: {autism_by_cluster} | NT (reference): {n_nt} | IDD: {n_idd}")
     return alpha_peak
-
-
-# =============================================================================
-# REGRESSION & Z-SCORE
-# =============================================================================
-
-def regress_and_zscore(df: pd.DataFrame) -> pd.DataFrame:
-    """Regress alpha_peak_corrected on age, age^2, sex; z-score residuals using TD mean/std.
-
-    Parameters
-    ----------
-    df : DataFrame with columns age_yrs, Sex, alpha_peak_corrected, control_status
-
-    Returns
-    -------
-    df with alpha_peak_corrected replaced by z-scored residuals.
-    """
-    df = df.copy()
-    df['age_yrs_sq'] = df['age_yrs'] ** 2
-    X = df[['age_yrs', 'age_yrs_sq', 'Sex']].copy()
-    X['Sex'] = X['Sex'].fillna(0)
-    y = df['alpha_peak_corrected']
-
-    model = LinearRegression().fit(X, y)
-    residuals = y - model.predict(X)
-
-    # Z-score using TD (control) group statistics
-    td_mask = (
-        df['control_status'].str.contains('control', case=False, na=False)
-        if 'control_status' in df.columns
-        else df['PopulationS1'] == 'NT'
-    )
-    td_residuals = residuals[td_mask]
-    if len(td_residuals) < 5:
-        print("Warning: fewer than 5 TD subjects for z-scoring; using all subjects.")
-        td_residuals = residuals
-
-    mu = td_residuals.mean()
-    sd = td_residuals.std()
-    if sd == 0 or np.isnan(sd):
-        print("Warning: TD std is 0 or NaN; skipping z-scoring.")
-        df['alpha_peak_corrected'] = residuals
-    else:
-        df['alpha_peak_corrected'] = (residuals - mu) / sd
-
-    df.drop(columns=['age_yrs_sq'], inplace=True)
-    return df
 
 
 # =============================================================================
@@ -184,29 +97,31 @@ def autism_clusters_vs_td_stats(df: pd.DataFrame, value_col: str,
     rows = []
     cluster_vs_td_buffer = []
 
-    # ---- Cluster vs TD -------------------------------------------------------
-    for cluster in order:
-        cluster_values = autism_data[autism_data['Cluster'] == cluster][value_col].dropna()
-        if len(cluster_values) < 3 or len(td_values) < 3:
+    # ---- Group vs NT (clusters C1/C2/C3 and IDD) -----------------------------
+    groups_vs_nt = [(c, autism_data[autism_data['Cluster'] == c][value_col].dropna())
+                    for c in order]
+    groups_vs_nt.append(('IDD', df[df['PopulationS1'] == 'IDD'][value_col].dropna()))
+    for group_label, group_values in groups_vs_nt:
+        if len(group_values) < 3 or len(td_values) < 3:
             continue
 
         # Normality test
-        cluster_normal = stats.shapiro(cluster_values)[1] > 0.05 if len(cluster_values) >= 3 else False
+        group_normal = stats.shapiro(group_values)[1] > 0.05 if len(group_values) >= 3 else False
         td_normal = stats.shapiro(td_values)[1] > 0.05 if len(td_values) >= 3 else False
-        test_type = 't-test' if (cluster_normal and td_normal) else 'Mann-Whitney'
+        test_type = 't-test' if (group_normal and td_normal) else 'Mann-Whitney'
 
         if test_type == 't-test':
-            t_val, p = stats.ttest_ind(cluster_values, td_values, equal_var=False)
+            t_val, p = stats.ttest_ind(group_values, td_values, equal_var=False)
         else:
-            t_val, p = stats.mannwhitneyu(cluster_values, td_values, alternative='two-sided')
+            t_val, p = stats.mannwhitneyu(group_values, td_values, alternative='two-sided')
 
         cluster_vs_td_buffer.append({
             'feature': value_col,
             'test_type': test_type,
-            'comparison': f'{cluster} vs NT',
-            'cluster_n': len(cluster_values),
+            'comparison': f'{group_label} vs NT',
+            'cluster_n': len(group_values),
             'td_n': len(td_values),
-            'cluster_mean': float(cluster_values.mean()),
+            'cluster_mean': float(group_values.mean()),
             'td_mean': float(td_values.mean()),
             't_or_u': float(t_val),
             'p_uncorrected': float(p),
@@ -289,9 +204,11 @@ def plot_alpha_peak_clusters_vs_td(df: pd.DataFrame, stats_df: pd.DataFrame,
     autism_data = df[df['PopulationS1'] == 'Autism'].dropna(subset=['Cluster'])
     td_data = df[df['PopulationS1'] == 'NT'].copy()
     td_data['Cluster'] = 'NT'
+    idd_data = df[df['PopulationS1'] == 'IDD'].copy()
+    idd_data['Cluster'] = 'IDD'
 
-    plot_data = pd.concat([autism_data, td_data], ignore_index=True)
-    plot_order = list(order) + ['NT']
+    plot_data = pd.concat([autism_data, td_data, idd_data], ignore_index=True)
+    plot_order = list(order) + ['NT', 'IDD']
 
     fig, ax = plt.subplots(1, 1, figsize=(8, 10))
 
@@ -332,32 +249,38 @@ def plot_alpha_peak_clusters_vs_td(df: pd.DataFrame, stats_df: pd.DataFrame,
         y_step = y_range * 0.08
         pos_map = {name: i for i, name in enumerate(plot_order)}
 
+        def _draw_bracket(x1, x2, y, p_fdr):
+            ax.plot(
+                [x1, x1, x2, x2],
+                [y, y + y_step * 0.3, y + y_step * 0.3, y],
+                color='black', linewidth=1.2,
+            )
+            p_text = f'{p_fdr:.0e}' if p_fdr < 0.001 else f'{p_fdr:.3f}'
+            ax.text(
+                (x1 + x2) / 2, y + y_step * 0.4, p_text,
+                ha='center', va='bottom', fontsize=11, fontweight='bold',
+            )
+
         bracket_y = y_max + y_step
+        # Group vs NT (C1/C2/C3 and IDD)
         for _, row in cluster_vs_td.iterrows():
             if not row.get('significant', False):
                 continue
-            cluster_label = row['comparison'].split(' vs NT')[0]
-            if cluster_label not in pos_map or 'NT' not in pos_map:
+            group_label = row['comparison'].split(' vs NT')[0]
+            if group_label not in pos_map or 'NT' not in pos_map:
                 continue
-            x1 = pos_map[cluster_label]
-            x2 = pos_map['NT']
-            p_fdr = row['p_fdr']
+            _draw_bracket(pos_map[group_label], pos_map['NT'], bracket_y, row['p_fdr'])
+            bracket_y += y_step * 1.2
 
-            # Bracket
-            ax.plot(
-                [x1, x1, x2, x2],
-                [bracket_y, bracket_y + y_step * 0.3, bracket_y + y_step * 0.3, bracket_y],
-                color='black', linewidth=1.2,
-            )
-            # P-value text
-            if p_fdr < 0.001:
-                p_text = f'{p_fdr:.0e}'
-            else:
-                p_text = f'{p_fdr:.3f}'
-            ax.text(
-                (x1 + x2) / 2, bracket_y + y_step * 0.4, p_text,
-                ha='center', va='bottom', fontsize=11, fontweight='bold',
-            )
+        # Pairwise inter-cluster comparisons (C1 vs C2, etc.), stacked above
+        pairwise = stats_df[~stats_df['comparison'].str.contains(' vs NT', na=False)]
+        for _, row in pairwise.iterrows():
+            if not row.get('significant', False):
+                continue
+            c1, c2 = [s.strip() for s in row['comparison'].split(' vs ')]
+            if c1 not in pos_map or c2 not in pos_map:
+                continue
+            _draw_bracket(pos_map[c1], pos_map[c2], bracket_y, row['p_fdr'])
             bracket_y += y_step * 1.2
 
     out_path = FIG_DIR / 'eeg_alpha_peak_clusters_vs_td_violin.pdf'
@@ -371,24 +294,21 @@ def plot_alpha_peak_clusters_vs_td(df: pd.DataFrame, stats_df: pd.DataFrame,
 # =============================================================================
 
 def main() -> int:
+    print(f"k-means clusters vs NT  →  {FIG_DIR}")
     FIG_DIR.mkdir(parents=True, exist_ok=True)
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 1. Load data
+    # 1. Load already-corrected data (curated k-means)
     alpha_peak = load_alpha_peak_with_clusters()
     print(f"Total subjects for analysis: {len(alpha_peak)}")
 
-    # 2. Regression + z-score (optional — data is already combat-corrected;
-    #    this step additionally removes residual age/sex effects and
-    #    normalises to the TD group scale)
-    alpha_peak = regress_and_zscore(alpha_peak)
-
-    # 3. Statistics
+    # 2. Statistics
     order = ('C1', 'C2', 'C3')
     stats_df = autism_clusters_vs_td_stats(alpha_peak, 'alpha_peak_corrected', order)
     print(stats_df[['comparison', 'test_type', 'p_uncorrected', 'p_fdr', 'significant']].to_string())
 
     # Save stats
-    stats_out = FIG_DIR / 'alpha_peak_clusters_vs_nt_stats.csv'
+    stats_out = TABLES_DIR / 'alpha_peak_clusters_vs_nt_stats.csv'
     stats_df.to_csv(stats_out, index=False)
     print(f"Stats saved: {stats_out}")
 

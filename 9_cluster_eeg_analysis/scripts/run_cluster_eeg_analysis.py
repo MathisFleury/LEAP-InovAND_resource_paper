@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-EEG Cluster Analysis Pipeline
+EEG Cluster Analysis Pipeline (curated clinical, k-means clusters vs NT).
 
-Orchestrates the complete EEG cluster analysis:
-1. Alpha peak — Autism clusters vs TD
-2. Power bands — Autism clusters vs TD
+0. Rebuild corrected alpha peak from raw $IMG5 (shared 8_eeg preprocessing)
+1. Alpha peak — Autism k-means clusters vs NT
+2. Power bands — Autism k-means clusters vs NT
 """
 
 import sys
@@ -13,99 +13,44 @@ import time
 from pathlib import Path
 
 _SCRIPT_DIR = Path(__file__).parent
+_PREP = _SCRIPT_DIR.parent.parent / "8_eeg_analysis" / "preprocessing"  # shared
+PY = "/usr/local/bin/python3.11"
 
 
-def run_script(script_path: Path, description: str,
-               python_executable: str = None) -> bool:
-    """Run a Python script as a subprocess and report success/failure.
-
-    Parameters
-    ----------
-    script_path        : Absolute path to the .py script.
-    description        : Human-readable name shown in the console header.
-    python_executable  : Python interpreter to use (defaults to sys.executable).
-
-    Returns
-    -------
-    True on success, False on failure.
-    """
-    print(f"\n{'='*60}")
-    print(f"Running: {description}")
-    print(f"Script : {script_path}")
-    print(f"{'='*60}")
-
+def run_script(script_path: Path, description: str) -> bool:
+    print(f"\n{'='*60}\nRunning: {description}\n{'='*60}")
     if not script_path.exists():
         print(f"ERROR: script not found: {script_path}")
         return False
-
-    executable = python_executable or sys.executable
-
     try:
-        result = subprocess.run(
-            [executable, str(script_path)],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        if result.stdout:
-            print(result.stdout)
+        result = subprocess.run([PY, str(script_path)], capture_output=True, text=True, check=True)
+        print(result.stdout)
         if result.stderr:
             print("Warnings/Info:", result.stderr[:1000])
         return True
     except subprocess.CalledProcessError as exc:
-        print(f"ERROR running '{description}':")
-        if exc.stdout:
-            print(f"  STDOUT: {exc.stdout[:1000]}")
-        if exc.stderr:
-            print(f"  STDERR: {exc.stderr[:1000]}")
-        return False
-    except FileNotFoundError:
-        print(f"ERROR: Python executable not found: {executable}")
+        print(f"ERROR running '{description}':\n  STDOUT: {exc.stdout[-1000:]}\n  STDERR: {exc.stderr[-1000:]}")
         return False
 
 
 def main() -> bool:
-    """Run all cluster EEG analysis steps sequentially.
-
-    Returns True if all required steps succeeded, False otherwise.
-    """
-    print("EEG Cluster Analysis Pipeline")
-    print("=" * 60)
-
+    print("EEG Cluster Analysis Pipeline (k-means, curated)\n" + "=" * 60)
     steps = [
-        (
-            _SCRIPT_DIR / '01_eeg_alpha_peak_clusters.py',
-            'EEG Alpha Peak Cluster Analysis',
-            True,
-            '/usr/local/bin/python3.11',
-        ),
-        (
-            _SCRIPT_DIR / '02_eeg_power_bands_clusters.py',
-            'EEG Power Bands Cluster Analysis',
-            True,
-            '/usr/local/bin/python3.11',
-        ),
+        (_PREP / 'build_alpha_peak_corrected.py', 'Preprocessing: rebuild corrected alpha peak (raw)'),
+        (_SCRIPT_DIR / '01_eeg_alpha_peak_clusters.py', 'EEG Alpha Peak — clusters vs NT'),
+        (_SCRIPT_DIR / '02_eeg_power_bands_clusters.py', 'EEG Power Bands — clusters vs NT'),
     ]
-
     results = {}
-    for script_path, description, required, py_exec in steps:
-        success = run_script(script_path, description, py_exec)
-        results[description] = success
-        if not success and required:
-            print(f"\nRequired step failed: '{description}' — aborting pipeline.")
+    for script_path, description in steps:
+        results[description] = run_script(script_path, description)
+        if not results[description]:
+            print(f"\nRequired step failed: '{description}' — aborting.")
             break
 
-    # Summary
-    print("\n" + "=" * 60)
-    print("PIPELINE SUMMARY")
-    print("=" * 60)
-    for step_name, step_success in results.items():
-        status = "SUCCESS" if step_success else "FAILED"
-        print(f"  [{status}] {step_name}")
-
-    overall = all(results.values()) if results else False
-    print(f"\nOverall: {'SUCCESS' if overall else 'FAILED'}")
-    return overall
+    print("\n" + "=" * 60 + "\nPIPELINE SUMMARY\n" + "=" * 60)
+    for name, ok in results.items():
+        print(f"  [{'SUCCESS' if ok else 'FAILED'}] {name}")
+    return all(results.values()) and len(results) == len(steps)
 
 
 if __name__ == '__main__':

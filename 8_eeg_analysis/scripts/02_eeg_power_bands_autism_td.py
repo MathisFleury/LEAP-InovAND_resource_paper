@@ -26,16 +26,19 @@ from statsmodels.stats.multitest import multipletests
 # PATHS
 # =============================================================================
 _SCRIPT_DIR = Path(__file__).parent
-_SECTION_DIR = _SCRIPT_DIR.parent  # 5_eeg_analysis/
+_SECTION_DIR = _SCRIPT_DIR.parent  # 8_eeg_analysis/
+sys.path.insert(0, str(_SECTION_DIR / "preprocessing"))
+from step_05_regress import regress  # noqa: E402
+from step_06_zscore import zscore    # noqa: E402
+from config import POWER_COMBINED    # noqa: E402
+from curated_map import attach_curated_demographics  # noqa: E402
 
 FIG_DIR = _SECTION_DIR / 'outputs' / 'figures'
-STATS_DIR = FIG_DIR / "stats"
-FDR_DIR = FIG_DIR / "fdr_corrected"
-COVARIATE_DIR = FIG_DIR / "covariate_effects"
+TABLES_DIR = _SECTION_DIR / 'outputs' / 'tables'
+STATS_DIR = TABLES_DIR / "stats"
+FDR_DIR = TABLES_DIR / "fdr_corrected"
+COVARIATE_DIR = TABLES_DIR / "covariate_effects"
 PLOTS_DIR = FIG_DIR / "plots"
-
-EEG_MRI_RESULTS = Path('/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results')
-DATA_DIR = EEG_MRI_RESULTS / 'dataset_paper' / 'dataframes'
 
 
 def reshape_absolute_power(df_eeg: pd.DataFrame) -> pd.DataFrame:
@@ -79,36 +82,11 @@ def reshape_relative_power(df_eeg: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_power_autism_td() -> pd.DataFrame:
-    power_combined_path = DATA_DIR / "Power_spectrum_combined_corrected.csv"
-
-    if not power_combined_path.exists():
-        print(f"Warning: Combined corrected power spectrum file not found: {power_combined_path}")
-        print("Falling back to Power_spectrum_corrected.csv...")
-        fallback = DATA_DIR / "Power_spectrum_corrected.csv"
-        if not fallback.exists():
-            raise FileNotFoundError(f"Power spectrum file not found: {fallback}")
-        power = pd.read_csv(fallback, low_memory=False)
-    else:
-        print(f"Loading combined corrected power spectrum from: {power_combined_path}")
-        power = pd.read_csv(power_combined_path, low_memory=False)
-
-        if 'Subject_ID' in power.columns and 'ID' not in power.columns:
-            if 'cohort' in power.columns:
-                leap_mask = power["cohort"] == "LEAP"
-                power.loc[leap_mask, 'ID'] = power.loc[leap_mask, 'Subject_ID'].astype(str).str.replace('sub-', '', regex=False)
-                inovand_mask = power["cohort"] == "INOVAND"
-                power.loc[inovand_mask, 'ID'] = power.loc[inovand_mask, 'Subject_ID'].astype(str)
-            else:
-                power['ID'] = power['Subject_ID'].astype(str)
-
-        # Merge with clusters for additional metadata
-        df_dataset = pd.read_csv(DATA_DIR / "df_clusters_complete_kmeans.csv", low_memory=False)
-        clusters_subset = df_dataset[['ID', 'genetics_score', 'Cluster']].copy()
-        clusters_subset['ID'] = clusters_subset['ID'].astype(str)
-        power = power.merge(clusters_subset, on='ID', how='left')
-
-    # Rename population label TD -> NT for display
-    power['PopulationS1'] = power['PopulationS1'].replace('TD', 'NT')
+    # Frozen long-format power (LEAP has no raw power on $IMG5), with curated
+    # demographics + k-means Cluster re-attached (curated is the only clinical source).
+    print(f"Loading combined corrected power spectrum from: {POWER_COMBINED}")
+    power = pd.read_csv(POWER_COMBINED, low_memory=False)
+    power = attach_curated_demographics(power)
 
     # Filter to valid corrected values
     if 'PSD_corrected' in power.columns:
@@ -317,6 +295,11 @@ def main():
             print(f'No {power_type} power features found.')
             continue
 
+        # Regress age/age²/sex and z-score on the FULL sample (no NT reference) —
+        # see preprocessing/ (mirrors the anat z-scoring pipeline, DX_COL=None).
+        power_reshaped = regress(power_reshaped, all_cols)
+        power_reshaped = zscore(power_reshaped, all_cols)
+
         bands = sorted({c.split('_')[-1] for c in all_cols})
         print(f"Found {len(all_cols)} {power_type} power features across {len(bands)} bands")
 
@@ -371,6 +354,9 @@ def main():
                 cohort_cols = [c for c in power_reshaped_cohort.columns if c.startswith(prefix)]
                 if not cohort_cols:
                     continue
+                # Regress + full-sample z-score within the cohort (no NT reference).
+                power_reshaped_cohort = regress(power_reshaped_cohort, cohort_cols)
+                power_reshaped_cohort = zscore(power_reshaped_cohort, cohort_cols)
                 cohort_bands = sorted({c.split('_')[-1] for c in cohort_cols})
                 cohort_stats_list = []
                 for band in cohort_bands:

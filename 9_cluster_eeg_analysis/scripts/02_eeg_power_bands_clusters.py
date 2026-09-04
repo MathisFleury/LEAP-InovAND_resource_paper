@@ -29,23 +29,25 @@ from sklearn.linear_model import LinearRegression
 # =============================================================================
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent  # 9_cluster_eeg_analysis/
+_PREP = _SECTION_DIR.parent / "8_eeg_analysis" / "preprocessing"  # shared preprocessing
+sys.path.insert(0, str(_PREP))
+from step_05_regress import regress  # noqa: E402
+from step_06_zscore import zscore    # noqa: E402
+from config import POWER_COMBINED    # noqa: E402
+from curated_map import attach_curated_demographics  # noqa: E402
 
 FIG_DIR = _SECTION_DIR / 'outputs' / 'figures'
-STATS_DIR = FIG_DIR / 'stats'
-FDR_DIR = FIG_DIR / 'fdr_corrected'
+TABLES_DIR = _SECTION_DIR / 'outputs' / 'tables'
+STATS_DIR = TABLES_DIR / 'stats'
+FDR_DIR = TABLES_DIR / 'fdr_corrected'
 PLOTS_DIR = FIG_DIR / 'plots'
-
-EEG_MRI_RESULTS = Path('/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results')
-DATA_DIR = EEG_MRI_RESULTS / 'dataset_paper' / 'dataframes'
-DF_CLUSTERS_FILE = DATA_DIR / 'df_clusters_complete_kmeans.csv'
-ALPHA_PEAK_FILE = DATA_DIR / 'Alpha_peak_combined_corrected.csv'
-POWER_SPECTRUM_FILE = DATA_DIR / 'Power_spectrum_combined_corrected.csv'
 
 # =============================================================================
 # COLORS / ORDER
 # =============================================================================
-CLUSTER_COLORS = {'C1': '#7A8B47', 'C2': '#ff9fa0', 'C3': '#e7ba52', 'NT': '#C1C2BC'}
-CLUSTER_ORDER = ['C1', 'C2', 'C3', 'NT']
+CLUSTER_COLORS = {'C1': '#7A8B47', 'C2': '#ff9fa0', 'C3': '#e7ba52',
+                  'NT': '#C1C2BC', 'IDD': '#D8A4CB'}
+CLUSTER_ORDER = ['C1', 'C2', 'C3', 'NT', 'IDD']
 
 
 # =============================================================================
@@ -60,54 +62,36 @@ def load_power_with_clusters() -> pd.DataFrame:
     Eye_status, Freq_band, Quant_status, PSD, PSD_corrected, control_status,
     age_yrs, Sex, PopulationS1, Population1.
 
-    Cluster labels are taken from df_clusters_complete_kmeans.csv (inner join on ID).
+    Cluster labels + demographics are the curated k-means values (attach_curated_demographics).
     Only Autism subjects with a Cluster assignment and TD subjects are retained.
 
     Returns
     -------
     Long-format DataFrame merged with cluster metadata.
     """
-    clusters = pd.read_csv(DF_CLUSTERS_FILE, low_memory=False)
-    power = pd.read_csv(POWER_SPECTRUM_FILE, low_memory=False)
-
+    power = pd.read_csv(POWER_COMBINED, low_memory=False)
     print(f"Loaded {len(power)} rows from power spectrum file")
 
-    # Align ID types for merging
-    power['ID'] = power['ID'].astype(str)
-    clusters_subset = clusters[['ID', 'Cluster', 'PopulationS1', 'age_yrs',
-                                 'Sex', 'control_status']].copy()
-    clusters_subset['ID'] = clusters_subset['ID'].astype(str)
-
-    # Inner join
-    power = power.merge(clusters_subset, on='ID', how='inner',
-                        suffixes=('', '_clusters'))
-
-    # Resolve duplicated columns: prefer clusters file values
-    for col in ['PopulationS1', 'age_yrs', 'Sex', 'control_status']:
-        col_clusters = f'{col}_clusters'
-        if col_clusters in power.columns:
-            power[col] = power[col_clusters].combine_first(power[col])
-            power.drop(columns=[col_clusters], inplace=True)
-
-    # Rename population label TD -> NT for display
-    power['PopulationS1'] = power['PopulationS1'].replace('TD', 'NT')
+    # Curated demographics + k-means Cluster (curated is the only clinical source)
+    power = attach_curated_demographics(power)
 
     # Quality filter
     power = power.dropna(subset=['age_yrs'])
 
-    # Population filter: Autism with cluster OR NT
+    # Population filter: Autism split by cluster (C1/C2/C3), plus NT (reference)
+    # and IDD, each kept as its own category.
     autism_mask = (power['PopulationS1'] == 'Autism') & power['Cluster'].notna()
     td_mask = power['PopulationS1'] == 'NT'
-    power = power[autism_mask | td_mask].reset_index(drop=True)
+    idd_mask = power['PopulationS1'] == 'IDD'
+    power = power[autism_mask | td_mask | idd_mask].reset_index(drop=True)
 
-    try:
-        unique_subjects = power[['ID', 'PopulationS1', 'Cluster']].drop_duplicates(subset=['ID'])
-        pop_counts = unique_subjects['PopulationS1'].value_counts(dropna=False).to_dict()
-        cluster_counts = unique_subjects['Cluster'].fillna('NT').value_counts(dropna=False).to_dict()
-        print(f"Unique subjects by PopulationS1: {pop_counts}")
-        print(f"Unique subjects by Cluster: {cluster_counts}")
-    except Exception as exc:
-        print(f"Warning: could not compute counts: {exc}")
+    uniq = power[['ID', 'PopulationS1', 'Cluster']].drop_duplicates(subset=['ID'])
+    autism_by_cluster = (uniq.loc[uniq['PopulationS1'] == 'Autism', 'Cluster']
+                         .value_counts().to_dict())
+    n_nt = int((uniq['PopulationS1'] == 'NT').sum())
+    n_idd = int((uniq['PopulationS1'] == 'IDD').sum())
+    print(f"Unique subjects — Autism by cluster: {autism_by_cluster} | "
+          f"NT (reference): {n_nt} | IDD: {n_idd}")
 
     return power
 
@@ -179,14 +163,14 @@ def reshape_power(df: pd.DataFrame) -> pd.DataFrame:
 # =============================================================================
 
 def regress_and_zscore_features(df: pd.DataFrame, features: list) -> pd.DataFrame:
-    """For each feature, regress on age and age^2, then z-score residuals using TD group.
+    """Regress age/age²/sex out of each feature and z-score on the FULL sample.
 
-    TD group is identified by control_status containing 'control' (case-insensitive).
-    Adds columns named '{feature}_corrected'.
+    No NT / control reference — see preprocessing/ (mirrors the anat z-scoring
+    pipeline, DX_COL=None). Adds columns named '{feature}_corrected'.
 
     Parameters
     ----------
-    df       : Wide-format DataFrame with age_yrs, control_status, and feature columns.
+    df       : Wide-format DataFrame with age_yrs, Sex, and feature columns.
     features : List of feature column names (e.g., con_Central_Left_alpha).
 
     Returns
@@ -194,46 +178,11 @@ def regress_and_zscore_features(df: pd.DataFrame, features: list) -> pd.DataFram
     df with additional '{feature}_corrected' columns.
     """
     df = df.copy()
-    df['_age_sq'] = df['age_yrs'] ** 2
-
-    # TD mask for z-scoring reference
-    if 'control_status' in df.columns:
-        td_mask = df['control_status'].str.contains('control', case=False, na=False)
-    else:
-        td_mask = df['PopulationS1'] == 'NT'
-
-    for feat in features:
-        valid_mask = ~df[feat].isna()
-        if valid_mask.sum() < 10:
-            continue
-
-        X = df.loc[valid_mask, ['age_yrs', '_age_sq']]
-        y = df.loc[valid_mask, feat]
-
-        if y.isna().all() or X.isna().any().any():
-            continue
-
-        model = LinearRegression().fit(X, y)
-        residuals = y - model.predict(X)
-
-        # Store residuals temporarily to compute TD statistics
-        df.loc[valid_mask, f'_res_{feat}'] = residuals
-
-        control_residuals = df.loc[valid_mask & td_mask, f'_res_{feat}'].dropna()
-        if len(control_residuals) < 5:
-            df.drop(columns=[f'_res_{feat}'], inplace=True)
-            continue
-
-        mu = control_residuals.mean()
-        sd = control_residuals.std()
-        if sd == 0 or np.isnan(sd):
-            df.drop(columns=[f'_res_{feat}'], inplace=True)
-            continue
-
-        df.loc[valid_mask, f'{feat}_corrected'] = (residuals - mu) / sd
-        df.drop(columns=[f'_res_{feat}'], inplace=True)
-
-    df.drop(columns=['_age_sq'], inplace=True)
+    corrected = [f'{f}_corrected' for f in features]
+    for f in features:
+        df[f'{f}_corrected'] = df[f]
+    df = regress(df, corrected)
+    df = zscore(df, corrected)
     return df
 
 
@@ -263,49 +212,56 @@ def clusters_vs_td_stats(df: pd.DataFrame, corrected_cols: list,
     """
     autism_data = df[df['PopulationS1'] == 'Autism'].dropna(subset=['Cluster'])
     td_data = df[df['PopulationS1'] == 'NT']
+    idd_data = df[df['PopulationS1'] == 'IDD']
 
-    all_rows = []
+    def _test(a, b):
+        a_normal = stats.shapiro(a)[1] > 0.05 if len(a) >= 3 else False
+        b_normal = stats.shapiro(b)[1] > 0.05 if len(b) >= 3 else False
+        if a_normal and b_normal:
+            return 't-test', *stats.ttest_ind(a, b, equal_var=False)
+        return 'Mann-Whitney', *stats.mannwhitneyu(a, b, alternative='two-sided')
+
+    vs_nt_rows, pw_rows = [], []
 
     for feat in corrected_cols:
         td_values = td_data[feat].dropna()
-        for cluster in order:
-            cluster_values = autism_data[autism_data['Cluster'] == cluster][feat].dropna()
-            if len(cluster_values) < 3 or len(td_values) < 3:
+        # ---- Group vs NT (clusters C1/C2/C3 and IDD) ----
+        groups = [(c, autism_data[autism_data['Cluster'] == c][feat].dropna()) for c in order]
+        groups.append(('IDD', idd_data[feat].dropna()))
+        for label, vals in groups:
+            if len(vals) < 3 or len(td_values) < 3:
                 continue
-
-            cluster_normal = stats.shapiro(cluster_values)[1] > 0.05 if len(cluster_values) >= 3 else False
-            td_normal = stats.shapiro(td_values)[1] > 0.05 if len(td_values) >= 3 else False
-            test_type = 't-test' if (cluster_normal and td_normal) else 'Mann-Whitney'
-
-            if test_type == 't-test':
-                t_val, p = stats.ttest_ind(cluster_values, td_values, equal_var=False)
-            else:
-                t_val, p = stats.mannwhitneyu(cluster_values, td_values, alternative='two-sided')
-
-            all_rows.append({
-                'feature': feat,
-                'test_type': test_type,
-                'comparison': f'{cluster} vs NT',
-                'cluster_n': int(len(cluster_values)),
-                'td_n': int(len(td_values)),
-                'cluster_mean': float(cluster_values.mean()),
-                'td_mean': float(td_values.mean()),
-                't_or_u': float(t_val),
-                'p_uncorrected': float(p),
+            test_type, t_val, p = _test(vals, td_values)
+            vs_nt_rows.append({
+                'feature': feat, 'test_type': test_type, 'comparison': f'{label} vs NT',
+                'cluster_n': int(len(vals)), 'td_n': int(len(td_values)),
+                'cluster_mean': float(vals.mean()), 'td_mean': float(td_values.mean()),
+                't_or_u': float(t_val), 'p_uncorrected': float(p),
+            })
+        # ---- Pairwise inter-cluster (C1 vs C2, C1 vs C3, C2 vs C3) ----
+        for c1, c2 in combinations(order, 2):
+            v1 = autism_data[autism_data['Cluster'] == c1][feat].dropna()
+            v2 = autism_data[autism_data['Cluster'] == c2][feat].dropna()
+            if len(v1) < 3 or len(v2) < 3:
+                continue
+            test_type, t_val, p = _test(v1, v2)
+            pw_rows.append({
+                'feature': feat, 'test_type': test_type, 'comparison': f'{c1} vs {c2}',
+                'cluster_n': int(len(v1)), 'td_n': int(len(v2)),
+                'cluster_mean': float(v1.mean()), 'td_mean': float(v2.mean()),
+                't_or_u': float(t_val), 'p_uncorrected': float(p),
             })
 
-    if not all_rows:
-        return pd.DataFrame()
-
-    stats_df = pd.DataFrame(all_rows)
-
-    # Global FDR correction
-    pvals = stats_df['p_uncorrected'].values
-    _, pvals_fdr, _, _ = smm.multipletests(pvals, method='fdr_bh', alpha=0.05)
-    stats_df['p_fdr'] = pvals_fdr
-    stats_df['significant'] = pvals_fdr < 0.05
-
-    return stats_df
+    # FDR-BH within each family separately (vs-NT global, pairwise global).
+    frames = []
+    for rows in (vs_nt_rows, pw_rows):
+        if rows:
+            sdf = pd.DataFrame(rows)
+            _, pf, _, _ = smm.multipletests(sdf['p_uncorrected'].values, method='fdr_bh', alpha=0.05)
+            sdf['p_fdr'] = pf
+            sdf['significant'] = pf < 0.05
+            frames.append(sdf)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
 # =============================================================================
@@ -338,8 +294,10 @@ def plot_power_bands_clusters(df: pd.DataFrame, band: str, corrected_cols: list,
     autism_data = df[df['PopulationS1'] == 'Autism'].dropna(subset=['Cluster'])
     td_data = df[df['PopulationS1'] == 'NT'].copy()
     td_data['Cluster'] = 'NT'
-    plot_data = pd.concat([autism_data, td_data], ignore_index=True)
-    plot_order = list(order) + ['NT']
+    idd_data = df[df['PopulationS1'] == 'IDD'].copy()
+    idd_data['Cluster'] = 'IDD'
+    plot_data = pd.concat([autism_data, td_data, idd_data], ignore_index=True)
+    plot_order = list(order) + ['NT', 'IDD']
 
     n_features = len(corrected_cols)
     n_cols = min(3, n_features)
@@ -386,24 +344,44 @@ def plot_power_bands_clusters(df: pd.DataFrame, band: str, corrected_cols: list,
         ax.tick_params(axis='x', labelsize=7, rotation=30)
         ax.tick_params(axis='y', labelsize=8)
 
-        # Mark significant clusters with '*'
+        # Annotate significant results: '*' over each group for group-vs-NT,
+        # brackets with p-value for pairwise inter-cluster comparisons.
         if stats_df is not None and not stats_df.empty:
-            feat_stats = stats_df[
-                (stats_df['feature'] == feat) &
-                (stats_df['significant'] == True) &
-                (stats_df['comparison'].str.contains(' vs NT', na=False))
-            ]
             pos_map = {name: i for i, name in enumerate(plot_order)}
             y_vals = feat_data[feat].dropna()
             if not y_vals.empty:
-                y_annot = y_vals.max() + (y_vals.max() - y_vals.min()) * 0.05
+                yr = (y_vals.max() - y_vals.min()) or 1.0
+                # group vs NT stars
+                feat_stats = stats_df[
+                    (stats_df['feature'] == feat) & (stats_df['significant']) &
+                    (stats_df['comparison'].str.contains(' vs NT', na=False))
+                ]
+                y_annot = y_vals.max() + yr * 0.05
                 for _, srow in feat_stats.iterrows():
-                    cluster_label = srow['comparison'].split(' vs NT')[0]
-                    if cluster_label in pos_map:
-                        ax.text(
-                            pos_map[cluster_label], y_annot, '*',
-                            ha='center', va='bottom', fontsize=12, color='black',
-                        )
+                    group_label = srow['comparison'].split(' vs NT')[0]
+                    if group_label in pos_map:
+                        ax.text(pos_map[group_label], y_annot, '*',
+                                ha='center', va='bottom', fontsize=12, color='black')
+                # pairwise inter-cluster brackets (significant only), stacked above
+                feat_pw = stats_df[
+                    (stats_df['feature'] == feat) & (stats_df['significant']) &
+                    (~stats_df['comparison'].str.contains(' vs NT', na=False))
+                ]
+                ystep = yr * 0.09
+                by = y_vals.max() + yr * 0.13
+                for _, prow in feat_pw.iterrows():
+                    c1, c2 = [s.strip() for s in prow['comparison'].split(' vs ')]
+                    if c1 not in pos_map or c2 not in pos_map:
+                        continue
+                    x1, x2 = pos_map[c1], pos_map[c2]
+                    ax.plot([x1, x1, x2, x2],
+                            [by, by + ystep * 0.3, by + ystep * 0.3, by],
+                            color='black', linewidth=1.0)
+                    pf = prow['p_fdr']
+                    ptext = f'{pf:.0e}' if pf < 0.001 else f'{pf:.3f}'
+                    ax.text((x1 + x2) / 2, by + ystep * 0.35, ptext,
+                            ha='center', va='bottom', fontsize=7, fontweight='bold')
+                    by += ystep * 1.3
 
     # Hide unused subplots
     for ax_idx in range(n_features, n_rows * n_cols):
@@ -498,6 +476,7 @@ def create_synthesis_heatmap(bands: list, order: tuple = ('C1', 'C2', 'C3')) -> 
 # =============================================================================
 
 def main() -> int:
+    print(f"k-means clusters vs NT  →  {FIG_DIR}")
     # Create output directories
     for d in [FIG_DIR, STATS_DIR, FDR_DIR, PLOTS_DIR]:
         d.mkdir(parents=True, exist_ok=True)

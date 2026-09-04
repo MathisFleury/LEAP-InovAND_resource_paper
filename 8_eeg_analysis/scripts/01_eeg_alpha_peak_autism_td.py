@@ -1,82 +1,41 @@
 #!/usr/bin/env python3
 """
-EEG Alpha Peak Autism vs TD Analysis
+EEG Alpha Peak — Autism vs NT.
 
-Analyzes individual alpha frequency comparing Autism vs TD:
-- Age + sex regression
-- Z-score normalization using TD as reference
-- Violin plots with individual data points
-
-Adapted from eeg_mri-pipeline/analysis/figures_papers/eeg_autism_td_analysis/run_eeg_alpha_peak_autism_td.py
+Consumes the curated, already-corrected alpha peak built by
+  preprocessing/build_alpha_peak_corrected.py
+(raw $IMG5 rebuild + curated demographics + full-sample regress/z-score).
+This script does NOT correct again — it only runs stats and plots.
 """
 
-import os
 import sys
 from pathlib import Path
 import pandas as pd
-import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.linear_model import LinearRegression
 
 # =============================================================================
 # PATHS
 # =============================================================================
 _SCRIPT_DIR = Path(__file__).parent
-_SECTION_DIR = _SCRIPT_DIR.parent  # 5_eeg_analysis/
+_SECTION_DIR = _SCRIPT_DIR.parent  # 8_eeg_analysis/
+sys.path.insert(0, str(_SECTION_DIR / "preprocessing"))
+from config import ALPHA_PEAK_CORRECTED  # noqa: E402
 
 FIG_DIR = _SECTION_DIR / 'outputs' / 'figures'
+TABLES_DIR = _SECTION_DIR / 'outputs' / 'tables'
 FIG_DIR.mkdir(parents=True, exist_ok=True)
-
-EEG_MRI_RESULTS = Path('/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results')
-DATA_DIR = EEG_MRI_RESULTS / 'dataset_paper' / 'dataframes'
-DF_CLUSTERS_FILE = DATA_DIR / 'df_clusters_complete_kmeans.csv'
+TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def load_alpha_peak_autism_td():
-    clusters = pd.read_csv(DF_CLUSTERS_FILE)
-
-    alpha_peak_combined = pd.read_csv(DATA_DIR / "Alpha_peak_combined_corrected.csv")
-    print(f"Loaded {len(alpha_peak_combined)} subjects from combined alpha peak file")
-
-    alpha_peak_combined["ID"] = alpha_peak_combined["ID"].astype(str)
-
-    clusters_subset = clusters[["ID", "Sex", "genetics_score", "Population1"]].copy()
-    clusters_subset["ID"] = clusters_subset["ID"].astype(str)
-
-    alpha_peak = alpha_peak_combined.merge(clusters_subset, on="ID", how="inner")
-
-    # Rename population label TD -> NT for display
-    alpha_peak['PopulationS1'] = alpha_peak['PopulationS1'].replace('TD', 'NT')
-
-    alpha_peak = alpha_peak.dropna(subset=["age_yrs"])
+    alpha_peak = pd.read_csv(ALPHA_PEAK_CORRECTED)
+    print(f"Loaded {len(alpha_peak)} subjects from {ALPHA_PEAK_CORRECTED.name}")
+    alpha_peak["ID"] = alpha_peak["ID"].astype(str)
     alpha_peak = alpha_peak[alpha_peak["alpha_peak_corrected"].notna()]
-    alpha_peak = alpha_peak[alpha_peak["alpha_peak_corrected"] != 0]
-
-    try:
-        s1_counts = alpha_peak["PopulationS1"].value_counts(dropna=False).to_dict()
-        print("Alpha peak counts by PopulationS1:", s1_counts)
-    except Exception as e:
-        print(f"Warning: could not compute counts: {e}")
-
-    return alpha_peak
-
-
-def regress_and_zscore(alpha_peak: pd.DataFrame) -> pd.DataFrame:
-    alpha_peak = alpha_peak.copy()
-    alpha_peak["age_yrs_sq"] = alpha_peak["age_yrs"] ** 2
-    X = alpha_peak[["age_yrs", "Sex", "age_yrs_sq"]].copy()
-    X['Sex'] = X['Sex'].fillna(0)
-    y = alpha_peak["alpha_peak_corrected"]
-    model = LinearRegression().fit(X, y)
-    residuals = y - model.predict(X)
-
-    controls = alpha_peak[alpha_peak["PopulationS1"] == "NT"]
-    mu = controls["alpha_peak_residuals"].mean() if "alpha_peak_residuals" in controls.columns else residuals[alpha_peak["PopulationS1"] == "NT"].mean()
-    sd_val = residuals[alpha_peak["PopulationS1"] == "NT"].std()
-
-    alpha_peak["alpha_peak_corrected"] = (residuals - mu) / sd_val
+    print("Alpha peak counts by PopulationS1:",
+          alpha_peak["PopulationS1"].value_counts(dropna=False).to_dict())
     return alpha_peak
 
 
@@ -141,7 +100,7 @@ def plot_alpha_peak_autism_vs_td(df: pd.DataFrame):
 
 
 def plot_alpha_peak_population1(df: pd.DataFrame):
-    relevant_populations = ["Autism", "ID", "NT", "Relatives"]
+    relevant_populations = ["Autism", "IDD", "NT", "Relatives"]
     plot_data = df[df["PopulationS1"].isin(relevant_populations)].copy()
     if plot_data.empty:
         print("No data available for PopulationS1 plot")
@@ -149,7 +108,6 @@ def plot_alpha_peak_population1(df: pd.DataFrame):
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     colors = {"Autism": "#5CAEE1", "Autism with ID": "#324095", "IDD": "#D8A4CB", "NT": "#C1C2BC", "Relatives": "#9AD5D3"}
-    plot_data["PopulationS1"] = plot_data["PopulationS1"].replace({"ID": "IDD"})
     plot_order = ["NT", "Autism", "IDD", "Relatives"]
 
     sns.violinplot(y="alpha_peak_corrected", x="PopulationS1", data=plot_data, inner=None,
@@ -179,14 +137,11 @@ def plot_alpha_peak_population1(df: pd.DataFrame):
 def main():
     FIG_DIR.mkdir(parents=True, exist_ok=True)
 
-    alpha_peak = load_alpha_peak_autism_td()
-
-    # Save merged dataframe
-    alpha_peak.to_csv(DATA_DIR / 'df_alpha_peak_autism_td.csv', index=False)
+    alpha_peak = load_alpha_peak_autism_td()  # already corrected in preprocessing
 
     # Stats
     stats_df = autism_vs_td_stats(alpha_peak, "alpha_peak_corrected")
-    stats_df.to_csv(FIG_DIR / 'alpha_peak_autism_vs_td_stats.csv', index=False)
+    stats_df.to_csv(TABLES_DIR / 'alpha_peak_autism_vs_td_stats.csv', index=False)
     print(f"Stats saved. Significant: {stats_df['significant'].sum() if len(stats_df) > 0 else 0}")
 
     # Plots

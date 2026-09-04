@@ -14,7 +14,7 @@ Saves .vtk mesh files to:
   _resources/custom_subcortical_atlas_4S156/
 
 After running this script once, the visualization scripts in
-6_functional_analysis and 7_cluster_functional_analysis can use:
+6_functional_analysis/{concat,non_concat} and 7_cluster_functional_analysis can use:
   plot_subcortical(data=..., custom_atlas_path=CUSTOM_ATLAS_DIR, ...)
 """
 

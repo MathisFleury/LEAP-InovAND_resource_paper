@@ -5,15 +5,15 @@ Composite QC figure — Framewise Displacement, Euler number, ComBat AUC-ROC.
 2x2 grid of pre-rendered panel PDFs (each already produced by its own
 analysis script — this script only lays them out):
   a. Framewise displacement (Power et al.) by phenotype group
-       <- 6-2_functional_analysis/scripts/12_motion_confound_check.py
+       <- 6_functional_analysis/concat/scripts/12_motion_confound_check.py
   b. FreeSurfer Euler number by phenotype group (structural QC companion to a)
-       <- 4_anatomical_analysis/curated/scripts/17_euler_confound_check.py
+       <- 4_anatomical_analysis/scripts/17_euler_confound_check.py
   c. ComBat AUC-ROC (fMRI): SVM scanner-classification AUC before vs after
      ComBat, per scanner
-       <- 6-2_functional_analysis/scripts/13_sequence_combat_svm.py (by-machine)
+       <- 6_functional_analysis/concat/scripts/13_sequence_combat_svm.py (by-machine)
   d. ComBat AUC-ROC (structural MRI): same check on the anatomical pipeline
      (structural companion to c)
-       <- orphaned output at 4_anatomical_analysis/curated/outputs/qc_sequence/
+       <- orphaned output at 4_anatomical_analysis/outputs/qc_sequence/
           anat_sequence_svm_auc_bymachine.pdf (generating script not in repo)
 
 Re-run the source scripts first if the underlying data changed; this script
@@ -25,10 +25,10 @@ import fitz  # PyMuPDF
 
 ROOT = Path(__file__).parent.parent
 ROWS = [
-    [("a", ROOT / "6-2_functional_analysis/outputs/qc_motion/fd_violin.pdf"),
-     ("b", ROOT / "4_anatomical_analysis/curated/outputs/figures/qc_euler/euler_violin.pdf")],
-    [("c", ROOT / "6-2_functional_analysis/outputs/qc_sequence/sequence_svm_auc_bymachine.pdf"),
-     ("d", ROOT / "4_anatomical_analysis/curated/outputs/qc_sequence/anat_sequence_svm_auc_bymachine.pdf")],
+    [("a", ROOT / "6_functional_analysis/concat/outputs/qc_motion/fd_violin.pdf"),
+     ("b", ROOT / "4_anatomical_analysis/outputs/figures/qc_euler/euler_violin.pdf")],
+    [("c", ROOT / "6_functional_analysis/concat/outputs/qc_sequence/sequence_svm_auc_bymachine.pdf"),
+     ("d", ROOT / "4_anatomical_analysis/outputs/qc_sequence/anat_sequence_svm_auc_bymachine.pdf")],
 ]
 OUT = Path(__file__).parent / "Figure_QC_FD_Euler_ComBatROC.pdf"
 

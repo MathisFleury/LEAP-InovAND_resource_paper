@@ -5,12 +5,12 @@ Supplementary Excel workbook — anatomical MRI stats, group + cluster analyses.
 One sheet per (comparison x measure): Autism vs NT (group) and C1/C2/C3 vs NT
 (cluster, curated k-means). Long/tidy layout — one row per ROI x hemisphere,
 including bilateral/midline regions. Mirrors the ROI naming used by the gt
-PDF tables (16_gt_tables_anat_v2.R / 07_gt_tables_cluster_v2.R) so region
+PDF tables (16_gt_tables_anat_v2.R / 7_gt_tables_cluster.R) so region
 names match across the PDF and Excel outputs.
 
 Input:
-  4_anatomical_analysis/curated/outputs/figures/r_input_files/t_stat_anat_*.csv
-  5_cluster_anatomical_analysis/curated/outputs_curated_kmeans/figures/r_input_files/t_stat_cluster_*.csv
+  4_anatomical_analysis/outputs/figures/r_input_files/t_stat_anat_*.csv
+  5_cluster_anatomical_analysis/outputs/tables/r_input_files/t_stat_cluster_*.csv
 Output:
   _resources/Supp_Table_Anatomical_Cluster.xlsx
 """
@@ -22,8 +22,8 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 ROOT = Path(__file__).parent.parent
-GROUP_DIR = ROOT / "4_anatomical_analysis/curated/outputs/figures/r_input_files"
-CLUSTER_DIR = ROOT / "5_cluster_anatomical_analysis/curated/outputs_curated_kmeans/figures/r_input_files"
+GROUP_DIR = ROOT / "4_anatomical_analysis/outputs/figures/r_input_files"
+CLUSTER_DIR = ROOT / "5_cluster_anatomical_analysis/outputs/tables/r_input_files"
 OUT_XLSX = Path(__file__).parent / "Supp_Table_Anatomical_Cluster.xlsx"
 
 MEASURES = [

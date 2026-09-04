@@ -1,12 +1,20 @@
 # Functional connectivity methods — section 6 vs 7 (and 6 vs "6-block")
 
+> **Note (2026-09):** this note was written against the `non_concat/` (legacy
+> XCP-D 0.8) connectivity table below, which was the shared input at the time.
+> The manuscript-reported whole-group and per-cluster analyses now read
+> `concat/preprocessing/outputs/nogsr_concat/df_conn_cohort_norm_nogsr_concat.csv`
+> instead (see `README.md`) — the *inference logic* described here (edge /
+> network-block / NBS, whole-group vs per-cluster) still applies unchanged,
+> only the input table and cohort size differ from what's written below.
+
 All functional-connectivity analyses share **one input and one control group**;
 they differ only in (a) *who is on the "case" side* of the contrast and (b) *what
 inference is applied*. This note pins down those differences.
 
-## Shared foundation (identical everywhere)
+## Shared foundation (as originally run, non_concat pipeline)
 
-- **Connectivity**: `6_functional_analysis/preprocessing/outputs/df_conn_cohort_norm.csv`
+- **Connectivity**: `6_functional_analysis/non_concat/preprocessing/outputs/df_conn_cohort_norm.csv`
   — xcp_d / 4S156Parcels, **156 nodes → 10,731 edges** per subject, ComBat-
   harmonised, curated cohort.
 - **Diagnosis**: `population_group` from the curated clinical merge (TD → NADT relabelled **NT**). Cluster labels (k-means) attached from `df_clusters_complete_kmeans.csv`.

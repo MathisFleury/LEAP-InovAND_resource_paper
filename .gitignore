@@ -13,6 +13,9 @@ Rplots.pdf
 *cluster_assignments*
 **/individuals_metrics*
 
+# Test connectivty pipelines
+6_functional_analysis_test/
+
 # Atlas / resource data shipped alongside _resources/
 _resources/custom_subcortical_atlas_4S156/
 
@@ -24,6 +27,7 @@ _resources/*.pdf
 _resources/*.docx
 _resources/*.md
 _resources/*.html
+_resources/redline_figs/
 
 # =========================================================================
 # Data file types (anywhere in the tree)

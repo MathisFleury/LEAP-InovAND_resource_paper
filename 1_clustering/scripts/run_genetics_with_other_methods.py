@@ -5,7 +5,7 @@ plus the cluster-aware 2_genetic_analysis/03_carrier_freq_or_clusters.py)
 for each clustering method ∈ {kmeans, ward, gmm} from the curated data.
 
 Optional --autism-only flag uses the autism-only clusterings produced by
-04_run_clustering_curated.py --autism-only.
+04_run_clustering.py --autism-only.
 
 For each method:
   1. Swap `1_clustering/outputs/tables/cluster_assignments.csv` to the

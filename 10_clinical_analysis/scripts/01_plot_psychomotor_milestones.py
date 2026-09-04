@@ -5,8 +5,19 @@
 # Violin plots of age at psychomotor milestones (sitting, walking, first words,
 # first phrases) across clinical clusters (NT, C1, C2, C3, IDD).
 #
+# Clustering methodology (curated priority regime): K-means (n_init=25,
+# random_state=42, k=3) on standardised IQ x SRS-2 (IQ = total_IQ fillna
+# performance_IQ), with LEAP wave backfill T1->T2->T3. Written by
+# 1_clustering/scripts/04_run_clustering.py -> CLUSTERS_CURATED_FILE.
+# NT and IDD are assigned from the broad curated clinical rosters
+# (population_group), NOT from the k-means fit — those rosters are not gated on
+# IQ+SRS completeness, so controls with milestone data but no IQ/SRS are kept.
+# Ward/GMM are retained only as sensitivity analyses (see CLAUDE.md /
+# 06_method_comparison.py).
+#
 # Input:  concat_fonda_FIRST_ACQUISITIONS_251112.csv  (InovAND first acquisitions)
-#         df_clusters_complete_kmeans.csv                     (cluster assignments)
+#         individuals_metrics_with_clusters_curated.csv       (curated C1/C2/C3 labels)
+#         INOVAND/LEAP_clinical_curated*.tsv                  (NT/IDD membership)
 # Output: figures/  milestone violin plots (individual + combined)
 #         tables/   Kruskal-Wallis + pairwise statistics
 # =============================================================================
@@ -23,16 +34,50 @@ from statsmodels.stats.multitest import multipletests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _config import (
-    FONDA_CSV, CLUSTERS_FILE, LEAP_ADIR_CSV, LEAP_TO_FONDA,
+    FONDA_CSV, CLUSTERS_CURATED_FILE, LEAP_ADIR_CSV, LEAP_TO_FONDA,
+    INOVAND_CLINICAL_CURATED, LEAP_CLINICAL_CURATED,
     FIGURES_DIR, TABLES_DIR,
     PALETTE_CLUSTERS, ORDER_CLUSTERS,
     MILESTONE_COLS, MILESTONE_LABELS,
 )
 
 
-def load_and_merge(fonda_path, cluster_path):
-    """Load FONDA (InovAND) milestones + LEAP ADIR milestones, merge with
-    cluster assignments.
+def build_roster(clusters_path, inovand_clinical, leap_clinical):
+    """ID -> (PopulationS1, Cluster) roster for the milestones merge.
+
+    NT/IDD membership comes from the broad curated clinical rosters
+    (population_group), which are NOT gated on IQ+SRS completeness. The curated
+    k-means clustering table only supplies the autistic C1/C2/C3 labels — using
+    it to define NT/IDD would silently drop controls that lack IQ/SRS but do
+    have milestone data (that gating cost ~80 NT).
+    """
+    frames = []
+    for f in (inovand_clinical, leap_clinical):
+        if os.path.exists(f):
+            d = pd.read_csv(f, sep="\t", low_memory=False)[["ID", "population_group"]]
+            frames.append(d)
+        else:
+            print(f"WARNING: broad clinical roster not found: {f}")
+    roster = pd.concat(frames, ignore_index=True).dropna(subset=["ID"])
+    roster["ID"] = roster["ID"].astype(str)
+    roster = roster.rename(columns={"population_group": "PopulationS1"})
+    roster = roster.drop_duplicates("ID")
+
+    clusters = pd.read_csv(clusters_path, low_memory=False)
+    clusters["ID"] = clusters["ID"].astype(str)
+    roster = roster.merge(
+        clusters[["ID", "Cluster"]].drop_duplicates("ID"), on="ID", how="left",
+    )
+    print(f"Roster: {len(roster)} participants "
+          f"(NT={(roster['PopulationS1']=='NT').sum()}, "
+          f"IDD={(roster['PopulationS1']=='IDD').sum()}, "
+          f"clustered={roster['Cluster'].notna().sum()})")
+    return roster
+
+
+def load_and_merge(fonda_path, df_clusters):
+    """Load FONDA (InovAND) milestones + LEAP ADIR milestones, merge with the
+    roster (ID, PopulationS1, Cluster) built by build_roster().
 
     Uses CODE_MERGE (not CODE_PATIENT) because 161 AURD participants
     have CODE_PATIENT=NaN but a valid CODE_MERGE.
@@ -41,8 +86,6 @@ def load_and_merge(fonda_path, cluster_path):
     (AGEPAS, AGEMOTS, AGEPHRAS).
     """
     df_fonda = pd.read_csv(fonda_path, sep=";")
-    df_clusters = pd.read_csv(cluster_path, low_memory=False)
-
     df_fonda["CODE_MERGE"] = df_fonda["CODE_MERGE"].astype(str)
     df_clusters["ID"] = df_clusters["ID"].astype(str)
 
@@ -104,9 +147,10 @@ def load_and_merge(fonda_path, cluster_path):
     else:
         print(f"LEAP ADIR file not found: {LEAP_ADIR_CSV}")
 
-    # Assign TD participants to NT cluster, IDD to IDD
-    df.loc[df["PopulationS1"] == "TD", "Cluster"] = "NT"
-    df.loc[df["PopulationS1"] == "ID", "Cluster"] = "IDD"
+    # Assign neurotypical -> NT, intellectual-disability -> IDD (from PopulationS1,
+    # not the k-means fit). Curated PopulationS1 uses NT/IDD; frozen uses TD/ID.
+    df.loc[df["PopulationS1"].isin(["TD", "NT"]), "Cluster"] = "NT"
+    df.loc[df["PopulationS1"].isin(["ID", "IDD"]), "Cluster"] = "IDD"
 
     print(f"Final merged: {len(df)} participants (InovAND + LEAP)")
     return df
@@ -325,8 +369,9 @@ def main():
     os.makedirs(FIGURES_DIR, exist_ok=True)
     os.makedirs(TABLES_DIR, exist_ok=True)
 
-    # Load and merge
-    df = load_and_merge(FONDA_CSV, CLUSTERS_FILE)
+    # Load and merge (NT/IDD from broad clinical rosters, C1/C2/C3 from curated k-means)
+    roster = build_roster(CLUSTERS_CURATED_FILE, INOVAND_CLINICAL_CURATED, LEAP_CLINICAL_CURATED)
+    df = load_and_merge(FONDA_CSV, roster)
 
     # Clean milestone columns
     for col in MILESTONE_COLS:

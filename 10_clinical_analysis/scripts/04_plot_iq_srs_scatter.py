@@ -14,7 +14,7 @@
 # lines are the clinical cut-offs (SRS 60/75, IQ 70/130).
 #
 # Clinical + clusters: the curated k-means solution written by
-#   1_clustering/scripts/04_run_clustering_curated.py (in-project output).
+#   1_clustering/scripts/04_run_clustering.py (in-project output).
 # Genetics: gnomAD v4 carrier matrix (CARRIER_V4) — LOEUF-scored DEL/LoF calls.
 # Output:   figures/figure_final_IQ_SRS.pdf, figures/figure_IQ_SRS_geneset.pdf
 # =============================================================================

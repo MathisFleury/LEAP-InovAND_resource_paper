@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Run every cluster-aware downstream pipeline using the curated cluster
-assignments (LEAP + INOVAND + INFOR, see 04_run_clustering_curated.py).
+assignments (LEAP + INOVAND + INFOR, see 04_run_clustering.py).
 
 Strategy (preserves paper-data outputs):
   1. For each section, rename outputs/ → outputs_paper/ (idempotent).

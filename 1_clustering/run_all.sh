@@ -1,16 +1,13 @@
 #!/bin/bash
-# Run all clustering analysis scripts.
-# Curated (current, priority regime per project convention) runs by default;
-# the original frozen/paper-reproduction pipeline is a separate, optional
-# block below it -- kept only to reproduce the published figures, not the
-# path new work should build on.
+# Run all clustering analysis scripts -- curated (current, priority regime)
+# only. No frozen/deprecated-data reference anywhere in this tree; the
+# entire frozen/paper-reproduction pipeline lives in ../legacy/1_clustering/
+# with its own self-contained run_all.sh.
 set -e
 cd "$(dirname "$0")/scripts"
 
-echo "=== CURATED regime (default) ==="
-
 echo "--- 4. Run clustering (k=3), curated cohort ---"
-python3.11 04_run_clustering_curated.py
+python3.11 04_run_clustering.py
 
 echo "--- 1. PCA on clinical features, curated cohort ---"
 Rscript 01_pca_features.R
@@ -32,20 +29,5 @@ echo "--- 10. Cluster scatter panels (IQ x SRS, 4 colourings) ---"
 python3.11 10_cluster_scatter_panels.py
 
 echo ""
-echo "=== FROZEN / paper-reproduction regime (optional -- reproduces the"
-echo "    original submission's figures; not the default for new work) ==="
-echo "    Only 04 and 06 run here -- 01_pca_features.R and 05_cluster_stability.py"
-echo "    are now curated-only (no deprecated-data reference in this tree)."
-echo "    Every genuinely frozen-only script (feature selection rationale,"
-echo "    cluster validation, PCA, stability, heatmap, concept map, reval"
-echo "    k-selection) moved to ../legacy/1_clustering/ -- run that folder's"
-echo "    own run_all.sh separately if you need them."
-
-echo "--- 4. Run clustering (k=3), frozen cohort ---"
-python3.11 04_run_clustering.py
-
-echo "--- 6. Method comparison, frozen cohort ---"
-python3.11 06_method_comparison.py
-
-echo ""
-echo "=== Done. Outputs in 1_clustering/outputs/ (curated/ subdir + root) ==="
+echo "=== Done. Outputs in 1_clustering/outputs/curated/ ==="
+echo "For the frozen/paper-reproduction pipeline: cd ../legacy/1_clustering && ./run_all.sh"

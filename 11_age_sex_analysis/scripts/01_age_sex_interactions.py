@@ -42,7 +42,7 @@ import sys
 import importlib.util
 
 # Reuse the curated anatomical pipeline's config + curated-clinical loader
-# (curated_clinical mirrors 1_clustering/scripts/04_run_clustering_curated.py).
+# (curated_clinical mirrors 1_clustering/scripts/04_run_clustering.py).
 os.environ.setdefault('CURATED_CLINICAL', '1')  # phenotype from curated clinical TSVs
 _CURATED_SCRIPTS = os.path.abspath(os.path.join(
     _SECTION_DIR, '..', '4_anatomical_analysis', 'curated', 'scripts'))

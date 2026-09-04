@@ -28,6 +28,40 @@ _shared_spec.loader.exec_module(_shared)
 PALETTE_CLUSTERS = _shared.PALETTE_CLUSTERS
 ORDER_CLUSTERS = _shared.ORDER_CLUSTERS
 CLUSTERS_FILE = _shared.CLUSTERS_FILE
+INDIVIDUALS_METRICS = _shared.INDIVIDUALS_METRICS
+CARRIER_V4 = _shared.CARRIER_V4
+PALETTE_POPULATION1 = _shared.PALETTE_POPULATION1
+
+# Curated k-means cluster solution produced WITHIN this project by
+# 1_clustering/scripts/04_run_clustering.py. Carries the curated
+# clinical columns (IQ, SRS_tscore, vabsabcabc_standard, Population1) with the
+# k-means Cluster label. (In-project output — not the sibling-repo copy.)
+CLUSTERS_CURATED_FILE = os.path.join(
+    _project_dir, "1_clustering", "outputs", "curated", "tables",
+    "individuals_metrics_with_clusters_curated.csv",
+)
+
+# --- Clinical scores (panel C): column -> axis label ---
+# Full-scale IQ uses total_IQ with performance_IQ fallback (as in 1_clustering).
+CLINICAL_SCORES = {
+    "IQ": "Full-scale IQ",
+    "SRS_tscore": "SRS-2 total t-score",
+    "ssp_total": "SSP total score",
+    "vabsabcabc_standard": "VABS-II ABC score",
+}
+# Reference median dashed lines (whole-cohort)
+COLOR_AUTISM_MEDIAN = "#8991FA"  # autistic (with or without IDD) — canonical "Autism" group color
+COLOR_NT_MEDIAN = "#C1C2BC"      # neurotypical — canonical "NT" group color
+
+COLORS = {
+    "Autism": "#8991FA",
+    "Relatives": "#9AD5D3", 
+    "IDD": "#D8A4CB",
+    "TD": "#C1C2BC",
+    "Autism with IDD": "#324095",
+    "Autism without IDD": "#5CAEE1",
+    "NDD": "#8991FA"  # Use autism color for NDD
+}
 
 # --- Matplotlib defaults (same as project) ---
 plt.rcParams["font.family"] = "sans-serif"
@@ -48,6 +82,16 @@ FONDA_CSV = os.path.join(
 VERBAL_TSV = os.path.join(
     "/Volumes", "Imaging5", "EEG_MRI-MF", "INOVAND",
     "_clinical_data", "raw", "df_verbalornot.tsv",
+)
+# Broad curated clinical rosters — NOT gated on IQ+SRS completeness, so used for
+# NT/IDD group membership (the clustering table only supplies C1/C2/C3 labels).
+INOVAND_CLINICAL_CURATED = os.path.join(
+    "/Volumes", "Imaging5", "EEG_MRI-MF", "INOVAND",
+    "_clinical_data", "curated", "INOVAND_clinical_curated_merged.tsv",
+)
+LEAP_CLINICAL_CURATED = os.path.join(
+    "/Volumes", "Imaging5", "EEG_MRI-MF", "LEAP",
+    "_clinical_data", "curated", "LEAP_clinical_curated_t1.tsv",
 )
 LEAP_ADIR_CSV = os.path.join(
     _lib_dir, "eeg_mri-pipeline", "results", "dataset_paper", "dataframes",

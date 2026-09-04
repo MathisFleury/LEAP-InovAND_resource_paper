@@ -63,8 +63,8 @@ export LEAP_GENELIST_FILE="/path/to/hgnc_genelist.txt"  # optional
 ```
 
 Cluster-aware sections (3, 5, 7, 9, 10) read cluster labels written by
-`1_clustering/scripts/04_run_clustering_curated.py` (curated) or
-`04_run_clustering.py` (frozen). Run section 1 first.
+`1_clustering/scripts/04_run_clustering.py` (curated) or
+`legacy/1_clustering/04_run_clustering_frozen.py` (frozen). Run section 1 first.
 
 ## Dependencies
 
@@ -99,17 +99,16 @@ Clinical clustering based on IQ and SRS-2 dimensions.
 cd 1_clustering && ./run_all.sh
 ```
 
-Runs the **curated** regime by default (clustering → PCA → stability →
-method comparison → autism-only sensitivity → scatter panels), then a
-separate, clearly labelled **frozen/paper-reproduction** block (only
-`04_run_clustering.py`/`06_method_comparison.py`, whose output or CLI-arg
-sharing keeps them in this tree). `01_pca_features.R`/`05_cluster_stability.py`
-are curated-only here — no deprecated-data reference in this file at all —
-with their frozen counterparts, plus every other frozen-only script with no
-downstream dependents (feature-selection rationale, cluster validation,
-Figure-4a-style heatmap, concept map, reval k-selection), living in
-`legacy/1_clustering/` with its own `run_all.sh`, run after the main frozen
-block. Three cross-section batch drivers
+Runs only the **curated** regime (clustering → PCA → stability → method
+comparison → autism-only sensitivity → scatter panels) — no frozen/
+deprecated-data reference anywhere in this tree. `04_run_clustering.py`,
+`01_pca_features.R`, and `05_cluster_stability.py` are curated-only here;
+`06_method_comparison.py` still takes a `curated` arg since it's a
+comparison and needs both regimes' data, but never touches the deprecated
+path directly. Every frozen/paper-reproduction script — including the
+frozen `04_run_clustering.py`/`06_method_comparison.py` counterparts —
+lives in `legacy/1_clustering/` with its own, fully self-contained
+`run_all.sh`. Three cross-section batch drivers
 (`run_anatomical_with_other_methods.py`,
 `run_downstream_with_curated.py`, `run_genetics_with_other_methods.py`)
 rerun the relevant downstream sections once per clustering method

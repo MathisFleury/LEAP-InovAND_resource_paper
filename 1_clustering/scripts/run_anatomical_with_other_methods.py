@@ -4,7 +4,7 @@ Run the cluster-anatomical pipelines (5_cluster_anatomical_analysis legacy
 and /curated/ v2) with K-means, Ward, and GMM cluster labels (curated data).
 
 Optional flag: --autism-only — uses the autism-only clusterings produced by
-running 04_run_clustering_curated.py with --autism-only (i.e. cluster file
+running 04_run_clustering.py with --autism-only (i.e. cluster file
 basenames become df_clusters_complete_curated_autism{,_ward,_gmm}.csv).
 
 For each method ∈ METHODS:

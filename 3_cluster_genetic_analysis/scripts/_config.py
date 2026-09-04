@@ -21,7 +21,7 @@ _shared_spec = importlib.util.spec_from_file_location(
 _shared = importlib.util.module_from_spec(_shared_spec)
 _shared_spec.loader.exec_module(_shared)
 
-# Re-export all shared constants (including those needed by 02_carrier_freq_or.py)
+# Re-export all shared constants (including those needed by _carrier_freq_or_shared.py)
 INDIVIDUALS_METRICS = _shared.INDIVIDUALS_METRICS
 DIAG_FILE = _shared.DIAG_FILE
 PGS_FILE = _shared.PGS_FILE
@@ -43,18 +43,35 @@ LABELS_DELLOFMISS_ALL = _shared.LABELS_DELLOFMISS_ALL
 LABELS_PGS = _shared.LABELS_PGS
 PGS_TRAITS = _shared.PGS_TRAITS
 
+# gnomad v4 carrier matrix + the two constraint definitions (_contraint_ /
+# _contraint_wo_PLI_) and DEL+LoF+Miss lists, used by 15_v4_cluster_clusters.py
+CARRIER_V4 = _shared.CARRIER_V4
+COLS_DELLOF_CONSTRAINED_WOPLI = _shared.COLS_DELLOF_CONSTRAINED_WOPLI
+LABELS_DELLOF_CONSTRAINED_WOPLI = _shared.LABELS_DELLOF_CONSTRAINED_WOPLI
+COLS_DELLOFMISS_CONSTRAINED_WOPLI = _shared.COLS_DELLOFMISS_CONSTRAINED_WOPLI
+LABELS_DELLOFMISS_CONSTRAINED_WOPLI = _shared.LABELS_DELLOFMISS_CONSTRAINED_WOPLI
+
+# Catch-all: re-export any other shared public name not bound above, so importing
+# 2_genetic_analysis/_carrier_freq_or_shared.py here never breaks when it grows new
+# `from _config import ...` names (e.g. DUP_FILE, COMBO_SOURCES_*).
+for _n in dir(_shared):
+    if not _n.startswith("_") and _n not in globals():
+        globals()[_n] = getattr(_shared, _n)
+
 # FIGURES_DIR / TABLES_DIR: point to 2_genetic_analysis outputs as fallback
 # (not used directly — cluster scripts always pass explicit dirs)
 FIGURES_DIR = _shared.FIGURES_DIR
 TABLES_DIR = _shared.TABLES_DIR
 
-# --- Carrier annotations from 2_genetic_analysis outputs ---
+# --- Carrier annotations (hg19/hg38, legacy) from the legacy 2_genetic_analysis
+# pipeline's self-contained output -- these are only produced there now that
+# 2_genetic_analysis's main tree is v4-only. ---
 CARRIER_ANNOTATIONS = os.path.join(
-    _lib_dir, "LEAP-InovAND_resource", "2_genetic_analysis", "outputs", "tables",
+    _lib_dir, "LEAP-InovAND_resource", "legacy", "2_genetic_analysis", "outputs", "tables",
     "carrier_annotations.tsv",
 )
 CARRIER_ANNOTATIONS_HG38 = os.path.join(
-    _lib_dir, "LEAP-InovAND_resource", "2_genetic_analysis", "outputs", "tables_hg38",
+    _lib_dir, "LEAP-InovAND_resource", "legacy", "2_genetic_analysis", "outputs", "tables_hg38",
     "carrier_annotations_hg38.tsv",
 )
 
@@ -71,29 +88,52 @@ CLUSTERS_GMM_FILE = os.path.join(
     "large_clustering_datasets", "results", "df_multi_dataset_with_clusters.csv",
 )
 
+# gnomad v4 PGS score files, split by ancestry (used by 15_v4_cluster_clusters.py):
+# PAN panels read the pan-ancestry scores, EUR panels the European-only scores.
+_IMG5 = os.environ.get("LEAP_INOVAND_IMG5", "/Volumes/Imaging5/EEG_MRI-MF")
+PGS_PAN_V4 = os.path.join(_IMG5, "ALL", "results", "tabular", "genetics", "InovAND-LEAP.pgs.panancestry.v4.tsv")
+PGS_EUR_V4 = os.path.join(_IMG5, "ALL", "results", "tabular", "genetics", "InovAND-LEAP.pgs.europeans.v4.tsv")
+
+# Curated k-means re-clustering (1_clustering/scripts/4_run_clustering.py)
+CLUSTERS_CURATED_KMEANS_FILE = os.path.join(
+    _lib_dir, "LEAP-InovAND_resource", "1_clustering", "outputs", "tables",
+    "individuals_metrics_with_clusters_curated.csv",
+)
+
 # --- Output directories ---
 OUTPUT_BASE = os.path.normpath(os.path.join(_script_dir, "..", "outputs"))
 
-FIGURES_LEGACY_DIR = os.path.join(OUTPUT_BASE, "figures_legacy")
-TABLES_LEGACY_DIR = os.path.join(OUTPUT_BASE, "tables_legacy")
-FIGURES_GMM_DIR = os.path.join(OUTPUT_BASE, "figures_gmm")
-TABLES_GMM_DIR = os.path.join(OUTPUT_BASE, "tables_gmm")
+# Current (v4 + curated k-means) cluster genetic analysis -- the one script
+# in this tree's scripts/ that isn't a legacy/gmm/manual/spark_lof variant.
+FIGURES_DIR_CURRENT = os.path.join(OUTPUT_BASE, "figures")
+TABLES_DIR_CURRENT = os.path.join(OUTPUT_BASE, "tables")
+
+# Legacy (hg19/hg38-v2, non-kmeans clustering) output base defaults to
+# OUTPUT_BASE, but legacy/3_cluster_genetic_analysis/run_all.sh overrides it
+# to a self-contained location so legacy outputs don't sit inside the main
+# tree's outputs/ alongside the current one.
+_LEGACY_OUTPUT_BASE = os.environ.get("CLUSTER_GENETIC_LEGACY_OUTPUT_BASE", OUTPUT_BASE)
+
+FIGURES_LEGACY_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_legacy")
+TABLES_LEGACY_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_legacy")
+FIGURES_GMM_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_gmm")
+TABLES_GMM_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_gmm")
 
 # NT-restricted-to-C1 variants
-FIGURES_LEGACY_NTC1_DIR = os.path.join(OUTPUT_BASE, "figures_legacy_nt_c1")
-TABLES_LEGACY_NTC1_DIR = os.path.join(OUTPUT_BASE, "tables_legacy_nt_c1")
-FIGURES_GMM_NTC1_DIR = os.path.join(OUTPUT_BASE, "figures_gmm_nt_c1")
-TABLES_GMM_NTC1_DIR = os.path.join(OUTPUT_BASE, "tables_gmm_nt_c1")
+FIGURES_LEGACY_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_legacy_nt_c1")
+TABLES_LEGACY_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_legacy_nt_c1")
+FIGURES_GMM_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_gmm_nt_c1")
+TABLES_GMM_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_gmm_nt_c1")
 
 # hg38 variants
-FIGURES_LEGACY_HG38_DIR = os.path.join(OUTPUT_BASE, "figures_legacy_hg38")
-TABLES_LEGACY_HG38_DIR = os.path.join(OUTPUT_BASE, "tables_legacy_hg38")
-FIGURES_GMM_HG38_DIR = os.path.join(OUTPUT_BASE, "figures_gmm_hg38")
-TABLES_GMM_HG38_DIR = os.path.join(OUTPUT_BASE, "tables_gmm_hg38")
-FIGURES_LEGACY_HG38_NTC1_DIR = os.path.join(OUTPUT_BASE, "figures_legacy_hg38_nt_c1")
-TABLES_LEGACY_HG38_NTC1_DIR = os.path.join(OUTPUT_BASE, "tables_legacy_hg38_nt_c1")
-FIGURES_GMM_HG38_NTC1_DIR = os.path.join(OUTPUT_BASE, "figures_gmm_hg38_nt_c1")
-TABLES_GMM_HG38_NTC1_DIR = os.path.join(OUTPUT_BASE, "tables_gmm_hg38_nt_c1")
+FIGURES_LEGACY_HG38_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_legacy_hg38")
+TABLES_LEGACY_HG38_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_legacy_hg38")
+FIGURES_GMM_HG38_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_gmm_hg38")
+TABLES_GMM_HG38_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_gmm_hg38")
+FIGURES_LEGACY_HG38_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_legacy_hg38_nt_c1")
+TABLES_LEGACY_HG38_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_legacy_hg38_nt_c1")
+FIGURES_GMM_HG38_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_gmm_hg38_nt_c1")
+TABLES_GMM_HG38_NTC1_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_gmm_hg38_nt_c1")
 
 # --- SPARK carrier file ---
 SPARK_LOF_CARRIER = os.path.join(
@@ -102,27 +142,27 @@ SPARK_LOF_CARRIER = os.path.join(
 )
 
 SPARK_PGS_FILE = os.path.join(
-    "/Volumes", "Imaging5", "EEG_MRI-MF", "SPARK", "results", "tabular", "genetics",
+    _IMG5, "SPARK", "results", "tabular", "genetics",
     "SPARK-iWES-v3.pgs.20250411.tsv",
 )
 
 # SPARK output directories
-FIGURES_SPARK_DIR = os.path.join(OUTPUT_BASE, "figures_spark")
-TABLES_SPARK_DIR = os.path.join(OUTPUT_BASE, "tables_spark")
-FIGURES_SPARK_MANUAL_DIR = os.path.join(OUTPUT_BASE, "figures_spark_manual")
-TABLES_SPARK_MANUAL_DIR = os.path.join(OUTPUT_BASE, "tables_spark_manual")
+FIGURES_SPARK_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_spark")
+TABLES_SPARK_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_spark")
+FIGURES_SPARK_MANUAL_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_spark_manual")
+TABLES_SPARK_MANUAL_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_spark_manual")
 
 # SPARK vs LEAP-InovAND NT supplementary analysis
-FIGURES_SPARK_LEAPNT_DIR = os.path.join(OUTPUT_BASE, "figures_spark_leapnt")
-TABLES_SPARK_LEAPNT_DIR = os.path.join(OUTPUT_BASE, "tables_spark_leapnt")
-FIGURES_SPARK_LEAPNT_MANUAL_DIR = os.path.join(OUTPUT_BASE, "figures_spark_leapnt_manual")
-TABLES_SPARK_LEAPNT_MANUAL_DIR = os.path.join(OUTPUT_BASE, "tables_spark_leapnt_manual")
+FIGURES_SPARK_LEAPNT_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_spark_leapnt")
+TABLES_SPARK_LEAPNT_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_spark_leapnt")
+FIGURES_SPARK_LEAPNT_MANUAL_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_spark_leapnt_manual")
+TABLES_SPARK_LEAPNT_MANUAL_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_spark_leapnt_manual")
 
 # Manual cluster output directories (LEAP-InovAND, hg19 + hg38)
-FIGURES_MANUAL_DIR = os.path.join(OUTPUT_BASE, "figures_manual")
-TABLES_MANUAL_DIR = os.path.join(OUTPUT_BASE, "tables_manual")
-FIGURES_MANUAL_HG38_DIR = os.path.join(OUTPUT_BASE, "figures_manual_hg38")
-TABLES_MANUAL_HG38_DIR = os.path.join(OUTPUT_BASE, "tables_manual_hg38")
+FIGURES_MANUAL_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_manual")
+TABLES_MANUAL_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_manual")
+FIGURES_MANUAL_HG38_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "figures_manual_hg38")
+TABLES_MANUAL_HG38_DIR = os.path.join(_LEGACY_OUTPUT_BASE, "tables_manual_hg38")
 
 # --- SPARK LoF carrier columns ---
 COLS_SPARK_LOF_CONSTRAINED = [

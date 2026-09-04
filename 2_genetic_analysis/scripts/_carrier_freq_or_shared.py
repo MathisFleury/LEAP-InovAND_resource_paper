@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =============================================================================
-# 02 - Carrier Frequencies and Odds Ratios (Population-Level)
+# 3 - Carrier Frequencies and Odds Ratios (Population-Level)
 # =============================================================================
 # Computes carrier frequencies and odds ratios (vs TD) for rare variants
 # across multiple gene lists, ancestries, cohorts, and variant types.
 #
 # Refactored from: script_zakaria/frequencies_or.py (~3,100 lines → parameterized)
-# Input: carrier_annotations.tsv (from script 01), diag_listing.csv
+# Input: carrier_annotations.tsv (from script 1), diag_listing.csv
 # Output: frequency barplots (PDF), OR forest plots (PDF), OR tables (CSV)
 # =============================================================================
 
@@ -30,6 +30,7 @@ from _config import (
     COLS_DELLOF_CONSTRAINED, COLS_DELLOF_ALL,
     COLS_DELLOFMISS_CONSTRAINED, COLS_DELLOFMISS_ALL,
     COLS_DUP_CONSTRAINED, LABELS_DUP_CONSTRAINED,
+    COLS_DUP_ALL, LABELS_DUP_ALL,
     COMBO_PANEL_KEYS, COMBO_PANEL_LABELS,
     COMBO_SOURCES_DELLOF, COMBO_SOURCES_DELLOFDUP, COMBO_SOURCES_DELLOFDUPMISS,
 )
@@ -537,7 +538,9 @@ def main():
 
     # --- 14. Duplications, constrained, PopulationS1 ---
     print("\n=== Duplications, constrained, PopulationS1 ===")
-    dup_real_cols = [c for c in COLS_DUP_CONSTRAINED if c != "dup_any_constraint_carrier"]
+    dup_constraint_cols = [c for c in COLS_DUP_CONSTRAINED if c != "dup_any_constraint_carrier"]
+    dup_all_cols = [c for c in COLS_DUP_ALL if c != "dup_any_constraint_carrier"]
+    dup_real_cols = dup_constraint_cols + dup_all_cols
     df_dup = pd.read_table(DUP_FILE)[["ID"] + dup_real_cols]
     df_with_dup = df.merge(df_dup, on="ID", how="left")
     missing_dup = df_with_dup[dup_real_cols[0]].isna().sum()
@@ -547,7 +550,7 @@ def main():
         df_with_dup[c] = df_with_dup[c].fillna(False).astype(bool)
     # TODO: drop this synthetic OR once DUP_FILE provides an overall "any
     # constrained gene" carrier flag — read that column directly instead.
-    df_with_dup["dup_any_constraint_carrier"] = df_with_dup[dup_real_cols].any(axis=1)
+    df_with_dup["dup_any_constraint_carrier"] = df_with_dup[dup_constraint_cols].any(axis=1)
 
     plot_carrier_frequencies(
         df_with_dup, "PopulationS1_freq", COLS_DUP_CONSTRAINED,
@@ -558,6 +561,19 @@ def main():
         df_with_dup, "PopulationS1_freq", COLS_DUP_CONSTRAINED,
         PALETTE_FREQ, ORDER_OR, LABELS_DUP_CONSTRAINED,
         "PAN_dup_constraint_or.pdf",
+    )
+
+    # --- 14b. Duplications, all genes (no constraint filter), PopulationS1 ---
+    print("\n=== Duplications, all genes, PopulationS1 ===")
+    plot_carrier_frequencies(
+        df_with_dup, "PopulationS1_freq", COLS_DUP_ALL,
+        PALETTE_FREQ, ORDER_FREQ, LABELS_DUP_ALL,
+        "PAN_dup_allconstraint_freq.pdf",
+    )
+    compute_and_plot_odds_ratios(
+        df_with_dup, "PopulationS1_freq", COLS_DUP_ALL,
+        PALETTE_FREQ, ORDER_OR, LABELS_DUP_ALL,
+        "PAN_dup_allconstraint_or.pdf",
     )
 
     # --- 15. Combined-variant panels (DEL+LoF / +DUP / +DUP+MISS) ---

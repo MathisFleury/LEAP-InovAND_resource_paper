@@ -1,12 +1,14 @@
 #!/usr/bin/env Rscript
 # =============================================================================
-# 07b - Cluster / LOEUF IQ x PGS-intelligence panel (16 cm)
+# 4 - Cluster / LOEUF IQ x PGS-intelligence panel (16 cm)
 # =============================================================================
-# Section-2 analogue of 10_clinical_analysis/04d_plot_iq_srs_cluster_16cm.R:
+# Cluster-level analogue of 10_clinical_analysis/04d_plot_iq_srs_cluster_16cm.R:
 # the cluster-coloured, LOEUF-sized scatter, but x = intelligence PGS instead of
 # SRS-2, plus an OLS regression line with R^2 / p annotated on the figure.
-# Reads the frame written by 07_iq_pgs_loeuf_figures.py.
-# Output: figures_v4/figure_IQ_PGSint_cluster_loeuf_16cm.{pdf,svg}
+# Reads the frame written by 2_genetic_analysis/scripts/2_iq_pgs_loeuf_figures.py
+# (moved here from 2_genetic_analysis since this figure is cluster-coloured,
+# matching the population-vs-cluster section split).
+# Output: figures/figure_IQ_PGSint_cluster_loeuf_16cm.{pdf,svg}
 # =============================================================================
 suppressPackageStartupMessages({
   library(readr); library(dplyr); library(ggplot2)
@@ -15,8 +17,8 @@ suppressPackageStartupMessages({
 
 here <- dirname(sub("--file=", "", grep("--file=", commandArgs(FALSE), value = TRUE)))
 if (length(here) == 0) here <- "."
-FIG_DIR <- normalizePath(file.path(here, "..", "outputs", "figures_v4"), mustWork = FALSE)
-FRAME   <- normalizePath(file.path(here, "..", "outputs", "tables_v4", "iq_pgs_plot_frame.csv"))
+FIG_DIR <- normalizePath(file.path(here, "..", "outputs", "figures"), mustWork = FALSE)
+FRAME   <- normalizePath(file.path(here, "..", "..", "2_genetic_analysis", "outputs", "tables", "iq_pgs_plot_frame.csv"))
 dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
 
 W_CM <- 20; H_CM <- 11.5

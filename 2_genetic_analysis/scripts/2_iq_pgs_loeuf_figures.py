@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # =============================================================================
-# 07 - IQ figures: (1) IQ x PGS-intelligence scatter frame, (2) IQ ~ LOEUF betas
+# 2 - IQ figures: (1) IQ x PGS-intelligence scatter frame, (2) IQ ~ LOEUF betas
 # =============================================================================
 # Two Section-2 figures, both keyed on measured IQ (the `IQ` column: most
 # complete, ~1.7k non-null; NOT total/full-scale IQ) and gnomAD v4 genetics:
 #
-#   Figure 1 (frame only; plotted by 07b_plot_iq_pgs_cluster_loeuf.R):
+#   Figure 1 (frame only; plotted by 3_cluster_genetic_analysis/scripts/4_plot_iq_pgs_cluster_loeuf.R):
 #     Cluster-coloured, LOEUF-sized IQ (y) vs PGS-intelligence (x) scatter --
 #     the analogue of 10_clinical_analysis's figure_IQ_SRS_cluster_loeuf_16cm
 #     with the SRS-2 x-axis swapped for the intelligence PGS (int_savage2018).
 #     This step reuses the tested cluster/LOEUF/gene-set frame logic from
 #     10_clinical_analysis/04_plot_iq_srs_scatter.py and joins the PGS on
 #     barcode; R adds the OLS regression line + R^2 / p annotation.
-#     -> tables_v4/iq_pgs_plot_frame.csv
+#     -> tables/iq_pgs_plot_frame.csv
 #
 #   Figure 2 (computed AND plotted here):
 #     Per-gene-list beta of (IQ ~ -log10 LOEUF best-score), +/-1.96 SE, with
@@ -20,9 +20,9 @@
 #     beta_coefficients_*_loeuf.pdf with cortical thickness swapped for IQ.
 #     Same OLS + gene-list-specific permutation null as
 #     08_loeuf_mri_regression_permutation_v2.py.
-#     -> tables_v4/iq_loeuf_regperm.csv, figures_v4/beta_coefficients_iq_loeuf.pdf
+#     -> tables/iq_loeuf_regperm.csv, figures/beta_coefficients_iq_loeuf.pdf
 #
-# Run:  python3.11 07_iq_pgs_loeuf_figures.py
+# Run:  python3.11 2_iq_pgs_loeuf_figures.py
 # =============================================================================
 
 import os

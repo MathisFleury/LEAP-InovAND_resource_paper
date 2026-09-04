@@ -1,31 +1,20 @@
 #!/bin/bash
-# Run all genetic analysis scripts in order
+# Run the gnomAD v4 population-level genetic analysis pipeline -- the data
+# used in the paper. Cluster-level analysis lives in
+# 3_cluster_genetic_analysis/ (matches the anatomical/functional section
+# convention). No hg19/hg38-v2 reference anywhere in this tree; that legacy
+# (superseded) pipeline lives in ../legacy/2_genetic_analysis/ with its own
+# run_all.sh.
 set -e
 cd "$(dirname "$0")/scripts"
 
-echo "=== 1. Carrier annotation ==="
-python3.11 01_carrier_annotation.py
+echo "=== 1. gnomAD v4 carrier frequencies & odds ratios (population-level) ==="
+python3.11 1_carrier_freq_or.py
 
-echo "=== 1b. hg38 carrier annotation ==="
-python3.11 01b_hg38_carrier_annotation.py
+echo "=== 2. IQ x PGS-intelligence x LOEUF (population-level frame + betas) ==="
+python3.11 2_iq_pgs_loeuf_figures.py
 
-echo "=== 2. Carrier frequencies & odds ratios (population-level) ==="
-python3.11 02_carrier_freq_or.py
-
-echo "=== 3. Cluster-level analysis & PGS ==="
-python3.11 03_carrier_freq_or_clusters.py
-
-echo "=== 4. hg38 carrier frequencies & odds ratios ==="
-python3.11 04_hg38_carrier_freq_or.py
-
-echo "=== 5. gnomAD v4 carrier frequencies & odds ratios (population-level) ==="
-python3.11 05_v4_carrier_freq_or.py
-
-echo "=== 6. gnomAD v4 carrier frequencies & odds ratios by cluster ==="
-python3.11 06_v4_carrier_freq_or_clusters.py
-
-echo "=== 7. IQ x PGS-intelligence x LOEUF figures ==="
-python3.11 07_iq_pgs_loeuf_figures.py
-Rscript 07b_plot_iq_pgs_cluster_loeuf.R
-
-echo "=== Done. Outputs in 2_genetic_analysis/outputs/ ==="
+echo "=== Done. Outputs in 2_genetic_analysis/outputs/figures/ + tables/ ==="
+echo "Cluster-coloured IQ x PGS x LOEUF panel: 3_cluster_genetic_analysis/scripts/4_plot_iq_pgs_cluster_loeuf.R"
+echo "Cluster-level genetic analysis: cd ../3_cluster_genetic_analysis && ./run_all.sh"
+echo "For the legacy hg19/hg38-v2 pipeline: cd ../legacy/2_genetic_analysis && ./run_all.sh"

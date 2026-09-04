@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # =============================================================================
-# 05 - Carrier Frequencies & Odds Ratios (gnomad v4, PAN, two constraint defs)
+# 1 - Carrier Frequencies & Odds Ratios (gnomad v4, PAN, two constraint defs)
 # =============================================================================
 # Runs the headline PAN PopulationS1 constrained freq + OR analysis on the
 # gnomad v4 pre-annotated carrier matrix (CARRIER_V4), for BOTH constraint
 # definitions requested:
 #   - "_contraint_"        (standard, pLI-filtered)
 #   - "_contraint_wo_PLI_" (pLI filter dropped)
-# Each is run for DEL+LoF and for DEL+LoF+Miss. Outputs -> figures_v4/tables_v4.
+# Each is run for DEL+LoF and for DEL+LoF+Miss. Outputs -> figures/tables.
 #
-# Plot/OR functions are reused from script 02. Unlike 02/04, the v4 file already
+# Plot/OR functions are reused from _carrier_freq_or_shared.py. Unlike the
+# legacy hg19/hg38 scripts, the v4 file already
 # uses IDD/NT spelling and a boolean diag_genetic column, so no relabel is done.
 # =============================================================================
 
@@ -28,10 +29,10 @@ from _config import (
     LABELS_DELLOFMISS_CONSTRAINED_WOPLI, COLS_DELLOFMISS_CONSTRAINED_WOPLI,
 )
 
-# Reuse plotting/OR functions from script 02
+# Reuse plotting/OR functions from script 3
 from importlib.util import spec_from_file_location, module_from_spec
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-_spec = spec_from_file_location("script02", os.path.join(_script_dir, "02_carrier_freq_or.py"))
+_spec = spec_from_file_location("script02", os.path.join(_script_dir, "_carrier_freq_or_shared.py"))
 _mod = module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 plot_carrier_frequencies = _mod.plot_carrier_frequencies
@@ -56,7 +57,7 @@ def main():
     df = df.drop_duplicates("ID")
     # NB: v4 already uses IDD/NT and ships diag_genetic — no relabel applied.
 
-    # Build PAN PopulationS1 frequency grouping (same logic as scripts 02/04)
+    # Build PAN PopulationS1 frequency grouping (same logic as scripts 3/5)
     def assign_pop_freq(row):
         if row["PopulationS1"] == "Autism":
             return "Autism"
@@ -80,18 +81,18 @@ def main():
             cols = [c for c in cols if c != "diag_genetic"]  # no returnable-variants bar
             missing = [c for c in cols if c not in df_anc.columns]
             if missing:
-                print(f"  Skipping v4_{anc}_{stem}: missing columns {missing}")
+                print(f"  Skipping {anc}_{stem}: missing columns {missing}")
                 continue
             print(f"\n=== {anc} {variant} {defn} ===")
             plot_carrier_frequencies(
                 df_anc, "PopulationS1_freq", cols,
                 PALETTE_FREQ, ORDER_FREQ, labels,
-                f"v4_{anc}_{stem}_freq.pdf", ylim=(0, 1), figures_dir=FIGURES_DIR_V4,
+                f"{anc}_{stem}_freq.pdf", ylim=(0, 1), figures_dir=FIGURES_DIR_V4,
             )
             compute_and_plot_odds_ratios(
                 df_anc, "PopulationS1_freq", cols,
                 PALETTE_FREQ, ORDER_FREQ, labels,
-                f"v4_{anc}_{stem}_or.pdf", tables_dir=TABLES_DIR_V4, figures_dir=FIGURES_DIR_V4,
+                f"{anc}_{stem}_or.pdf", tables_dir=TABLES_DIR_V4, figures_dir=FIGURES_DIR_V4,
             )
 
     print("\n=== Done. v4 figures/tables in:", FIGURES_DIR_V4, "===")

@@ -23,8 +23,8 @@ from yabplot import plot_subcortical
 # =============================================================================
 _SCRIPT_DIR  = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent
-INPUT_DIR    = _SECTION_DIR / 'outputs' / 'figures'
-OUTPUT_DIR   = _SECTION_DIR / 'outputs' / 'figures'
+INPUT_DIR    = _SECTION_DIR / 'outputs' / 'tables'    # reads 01's per-cluster CSVs
+OUTPUT_DIR   = _SECTION_DIR / 'outputs' / 'figures'    # writes the yabplot PNGs
 
 CUSTOM_ATLAS_DIR = str(
     Path(__file__).parent.parent.parent /

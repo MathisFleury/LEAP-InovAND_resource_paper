@@ -12,7 +12,7 @@ Edge involvement = an edge contributes +1 to each of its two endpoints'
 network / region. "prominence" = that summed incident-edge count (a node touched
 by many component edges is a hub of the affected sub-network).
 
-Outputs (outputs/figures/nbs/):
+Outputs (outputs/tables/nbs/):
   nbs_prominent_networks.csv   cluster,direction,scope,network,n_edges,rank,pct
   nbs_prominent_regions.csv    cluster,direction,scope,region,network,n_edges,rank
 """
@@ -21,7 +21,7 @@ from pathlib import Path
 import pandas as pd
 
 _SECTION = Path(__file__).resolve().parent.parent
-NBS_DIR = _SECTION / "outputs" / "figures" / os.environ.get("NBS_SUBDIR", "nbs")
+NBS_DIR = _SECTION / "outputs" / "tables" / os.environ.get("NBS_SUBDIR", "nbs")
 ATLAS_FILE = ("/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/ressources/atlases/"
               "SCHAEFER/atlas-4S156Parcels/atlas-4S156Parcels_dseg.tsv")
 

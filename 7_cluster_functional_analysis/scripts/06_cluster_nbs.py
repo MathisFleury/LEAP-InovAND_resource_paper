@@ -2,7 +2,7 @@
 """
 Per-cluster Network-Based Statistic (NBS; Zalesky 2010) — cluster autism vs NT.
 
-Cluster analogue of 6_functional_analysis/scripts/07_nbs_test.py. For each
+Cluster analogue of 6_functional_analysis/non_concat/scripts/07_nbs_test.py. For each
 autism cluster (C1/C2/C3 vs the pooled NT group) and each direction
 (hypo = cluster<NT, hyper = cluster>NT):
   1. Welch t per edge; primary edge threshold t* from p<NBS_P.
@@ -10,7 +10,7 @@ autism cluster (C1/C2/C3 vs the pooled NT group) and each direction
   3. Permute cluster/NT labels (N_PERM) -> null max component size -> FWER p.
   4. Keep the LARGEST observed component (the NBS subnetwork) and write its edges.
 
-Outputs (outputs/figures/nbs/):
+Outputs (outputs/tables/nbs/):
   nbs_summary.csv                          cluster x direction: size, n_nodes, FWER
   cluster_<C>_nbs_edges.csv                largest-component edges (region, direction, t)
 
@@ -33,14 +33,14 @@ from statsmodels.stats.multitest import multipletests
 
 # reuse the section-6 loaders (connectivity + cluster merge + col filter)
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent
-                       / "6_functional_analysis" / "scripts"))
+                       / "6_functional_analysis" / "non_concat" / "scripts"))
 from _sensitivity_utils import load_connectivity_and_clusters, filter_connectivity_cols  # noqa: E402
 
 _SECTION = Path(__file__).resolve().parent.parent
 # NBS_SUBDIR lets each connectivity variant (e.g. the 6-2 v0.11 GSR modes) write
 # to its own folder, e.g. NBS_SUBDIR=nbs_nogsr_concat. Connectivity source is
 # selected upstream via FMRI_CONN_FILE (honoured by _sensitivity_utils).
-OUT_DIR = _SECTION / "outputs" / "figures" / os.environ.get("NBS_SUBDIR", "nbs")
+OUT_DIR = _SECTION / "outputs" / "tables" / os.environ.get("NBS_SUBDIR", "nbs")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 N_PERM = int(os.environ.get("N_PERM", "5000"))

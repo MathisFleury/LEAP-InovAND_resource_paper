@@ -8,7 +8,7 @@ counts NBS-component edges incident to each custom-atlas subcortical region
 (CIT168 striatum/basal ganglia, HCP hippocampus/amygdala, 10 cerebellar
 parcels, HCP thalamic nuclei) and renders a yabplot subcortical figure.
 
-Input : outputs/figures/nbs/cluster_<C>_nbs_edges.csv  (region, direction, t_stat)
+Input : outputs/tables/nbs/cluster_<C>_nbs_edges.csv  (region, direction, t_stat)
         (written by 06_cluster_nbs.py)
 Output: outputs/figures/nbs/cluster_<C>_nbs_subcortical_<dir>.png
 
@@ -29,7 +29,10 @@ from yabplot import plot_subcortical
 
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION = _SCRIPT_DIR.parent
-NBS_DIR = _SECTION / "outputs" / "figures" / os.environ.get("NBS_SUBDIR", "nbs")
+_NBS_SUBDIR = os.environ.get("NBS_SUBDIR", "nbs")
+TABLES_DIR = _SECTION / "outputs" / "tables" / _NBS_SUBDIR    # reads 06's nbs_edges.csv
+NBS_DIR = _SECTION / "outputs" / "figures" / _NBS_SUBDIR      # writes the subcortical PNGs
+NBS_DIR.mkdir(parents=True, exist_ok=True)
 _FULL_ATLAS_DIR = _SECTION.parent / "_resources" / "custom_subcortical_atlas_4S156"
 
 CLUSTERS = ["C1", "C2", "C3"]
@@ -103,7 +106,7 @@ def main() -> int:
     per_cell = {}
     gmax = 0
     for C in CLUSTERS:
-        fp = NBS_DIR / f"cluster_{C}_nbs_edges.csv"
+        fp = TABLES_DIR / f"cluster_{C}_nbs_edges.csv"
         if not fp.exists():
             print(f"  missing {fp.name}; skipping {C}")
             continue

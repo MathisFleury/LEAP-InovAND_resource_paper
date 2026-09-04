@@ -37,7 +37,9 @@ if (length(script_path) == 0) {
 }
 section_dir <- dirname(script_dir)
 
-OUTPUT_DIR <- file.path(section_dir, "outputs", "figures")
+INPUT_DIR  <- file.path(section_dir, "outputs", "tables")    # reads 01's per-cluster CSVs
+OUTPUT_DIR <- file.path(section_dir, "outputs", "figures")    # the 2 matrix plots
+TABLES_DIR <- file.path(section_dir, "outputs", "tables")     # the 2 matrix CSVs
 ATLAS_FILE <- "/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/ressources/atlases/SCHAEFER/atlas-4S156Parcels/atlas-4S156Parcels_dseg.tsv"
 
 # =============================================================================
@@ -104,7 +106,7 @@ calculate_total_possible_connections <- function(atlas_data) {
 # DATA LOADING
 # =============================================================================
 load_cluster_data <- function(cluster, connectivity_type) {
-  file_path <- file.path(OUTPUT_DIR, paste0("cluster_", cluster, "_vs_NT_significant_results.csv"))
+  file_path <- file.path(INPUT_DIR, paste0("cluster_", cluster, "_vs_NT_significant_results.csv"))
   if (!file.exists(file_path)) {
     cat("  WARNING: File not found:", file_path, "\n")
     return(NULL)
@@ -237,8 +239,8 @@ create_matrix_plots <- function(count_matrix, proportion_matrix, title_suffix, o
 
   count_file <- file.path(OUTPUT_DIR, paste0(output_prefix, "_raw_count_lower.pdf"))
   prop_file  <- file.path(OUTPUT_DIR, paste0(output_prefix, "_proportion_upper.pdf"))
-  count_csv  <- file.path(OUTPUT_DIR, paste0(output_prefix, "_raw_count_matrix.csv"))
-  prop_csv   <- file.path(OUTPUT_DIR, paste0(output_prefix, "_normalized_proportion_matrix.csv"))
+  count_csv  <- file.path(TABLES_DIR, paste0(output_prefix, "_raw_count_matrix.csv"))
+  prop_csv   <- file.path(TABLES_DIR, paste0(output_prefix, "_normalized_proportion_matrix.csv"))
 
   ggsave(count_file, count_plot, width = 10, height = 8, dpi = 300)
   ggsave(prop_file,  prop_plot,  width = 10, height = 8, dpi = 300)
@@ -263,6 +265,7 @@ main <- function() {
   cat("Output dir:", OUTPUT_DIR, "\n\n")
 
   if (!dir.exists(OUTPUT_DIR)) dir.create(OUTPUT_DIR, recursive = TRUE)
+  if (!dir.exists(TABLES_DIR)) dir.create(TABLES_DIR, recursive = TRUE)
 
   atlas_data <- load_atlas_info()
   total_possible <- calculate_total_possible_connections(atlas_data)

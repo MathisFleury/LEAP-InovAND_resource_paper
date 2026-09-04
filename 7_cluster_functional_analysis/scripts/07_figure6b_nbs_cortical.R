@@ -8,8 +8,8 @@
 # Panel titles carry the component's NBS FWER p. One shared "No. of edges"
 # colourbar per block (cortical); the subcortical insets share their own 1..max.
 #
-# Input : outputs/figures/nbs/cluster_<C>_nbs_edges.csv     (06_cluster_nbs.py)
-#         outputs/figures/nbs/nbs_summary.csv               (FWER per cluster/dir)
+# Input : outputs/tables/nbs/cluster_<C>_nbs_edges.csv      (06_cluster_nbs.py)
+#         outputs/tables/nbs/nbs_summary.csv                (FWER per cluster/dir)
 #         outputs/figures/nbs/cluster_<C>_nbs_subcortical_<dir>.png  (08_*.py)
 # Output: outputs/figures/nbs/figure6b_nbs.{pdf,png}
 # =============================================================================
@@ -24,14 +24,16 @@ script_path <- sub("--file=", "", args[grep("--file=", args)])
 script_dir  <- if (length(script_path) == 0) getwd() else dirname(normalizePath(script_path))
 section_dir <- dirname(script_dir)
 nbs_sub     <- Sys.getenv("NBS_SUBDIR", "nbs")     # per-variant output folder
+tables_dir  <- file.path(section_dir, "outputs", "tables", nbs_sub)
 nbs_dir     <- file.path(section_dir, "outputs", "figures", nbs_sub)
+dir.create(nbs_dir, showWarnings = FALSE, recursive = TRUE)
 ATLAS_FILE  <- "/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/ressources/atlases/SCHAEFER/atlas-4S156Parcels/atlas-4S156Parcels_dseg.tsv"
 
 atlas <- read.table(ATLAS_FILE, sep = "\t", header = TRUE)
 lab2net <- setNames(atlas$label_7network, atlas$label)   # node -> 7Networks_* parcel
 
 # thresholding description for the caption (from the edge-mode marker in summary)
-summ0 <- read.csv(file.path(nbs_dir, "nbs_summary.csv"), stringsAsFactors = FALSE)
+summ0 <- read.csv(file.path(tables_dir, "nbs_summary.csv"), stringsAsFactors = FALSE)
 edge_mode <- if ("mode" %in% names(summ0)) summ0$mode[1] else "uncorrected"
 thr_p     <- if ("thresh_p" %in% names(summ0)) summ0$thresh_p[1] else 0.05
 CAPTION <- switch(edge_mode,
@@ -45,7 +47,7 @@ DIRS <- list(list(key = "hypo",  title = "Hypoconnectivity",  low = "#deebf7", h
 
 # node-wise edge count for one cluster x direction, mapped to Schaefer parcels
 count_cortical <- function(cluster, direction) {
-  fp <- file.path(nbs_dir, sprintf("cluster_%s_nbs_edges.csv", cluster))
+  fp <- file.path(tables_dir, sprintf("cluster_%s_nbs_edges.csv", cluster))
   if (!file.exists(fp)) return(NULL)
   d <- read.csv(fp, stringsAsFactors = FALSE)
   d <- d[d$direction == direction, , drop = FALSE]

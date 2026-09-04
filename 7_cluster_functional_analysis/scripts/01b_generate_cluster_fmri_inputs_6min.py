@@ -24,7 +24,7 @@ from statsmodels.stats.multitest import multipletests
 
 # Pull the shared QC helpers from section 6 to avoid duplication.
 _THIS_DIR = Path(__file__).parent
-_SHARED_UTILS_DIR = _THIS_DIR.parents[1] / '6_functional_analysis' / 'scripts'
+_SHARED_UTILS_DIR = _THIS_DIR.parents[1] / '6_functional_analysis' / 'non_concat' / 'scripts'
 sys.path.insert(0, str(_SHARED_UTILS_DIR))
 from _sensitivity_utils import (  # noqa: E402
     apply_sensitivity_filters,

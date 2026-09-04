@@ -23,7 +23,9 @@ import numpy as np
 # =============================================================================
 _SCRIPT_DIR  = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent
-OUTPUT_DIR   = _SECTION_DIR / 'outputs' / 'figures'
+INPUT_DIR    = _SECTION_DIR / 'outputs' / 'tables'    # reads 01's per-cluster CSVs
+OUTPUT_DIR   = _SECTION_DIR / 'outputs' / 'figures'   # the 3 plots below
+TABLES_DIR   = _SECTION_DIR / 'outputs' / 'tables'    # cluster_hyper_hypo_summary.csv
 
 CLUSTERS = ['C1', 'C2', 'C3']
 
@@ -41,7 +43,7 @@ def load_cluster_results():
     """Load cluster vs NT connectivity CSVs and classify hyper/hypo by Cohen's d."""
     results = {}
     for cluster in CLUSTERS:
-        path = OUTPUT_DIR / f'cluster_{cluster}_connectivity_autism_vs_td.csv'
+        path = INPUT_DIR / f'cluster_{cluster}_connectivity_autism_vs_td.csv'
         if not path.exists():
             print(f"  WARNING: {path.name} not found, skipping {cluster}.")
             continue
@@ -173,7 +175,7 @@ def save_summary_csv(results):
             'median_abs_d_hypo':   r.get('median_abs_d_hypo'),
         })
     df = pd.DataFrame(rows)
-    out = OUTPUT_DIR / 'cluster_hyper_hypo_summary.csv'
+    out = TABLES_DIR / 'cluster_hyper_hypo_summary.csv'
     df.to_csv(out, index=False)
     print(f"Saved: {out.name}")
     print(df.to_string(index=False))
@@ -238,6 +240,7 @@ def main():
     print("=" * 60)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
     results = load_cluster_results()
     if not results:

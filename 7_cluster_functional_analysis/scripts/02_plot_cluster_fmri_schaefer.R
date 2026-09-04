@@ -38,7 +38,7 @@ if (length(script_path) == 0) {
 }
 section_dir <- dirname(script_dir)
 output_dir  <- file.path(section_dir, "outputs", "figures")
-r_input_dir <- file.path(output_dir, "r_input_files")
+r_input_dir <- file.path(section_dir, "outputs", "tables", "r_input_files")
 setwd(output_dir)
 
 ATLAS_FILE <- "/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/ressources/atlases/SCHAEFER/atlas-4S156Parcels/atlas-4S156Parcels_dseg.tsv"

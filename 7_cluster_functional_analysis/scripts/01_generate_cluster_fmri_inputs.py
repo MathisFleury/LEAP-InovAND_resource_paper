@@ -12,6 +12,7 @@ For each autism cluster (C1, C2, C3):
 Adapted from eeg_mri-pipeline — self-contained, no sys.path modifications.
 """
 
+import os
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -27,12 +28,17 @@ from statsmodels.stats.multitest import multipletests
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent
 
-OUTPUT_DIR = _SECTION_DIR / 'outputs' / 'figures'
+OUTPUT_DIR = _SECTION_DIR / 'outputs' / 'tables'  # pure-table step: no plots
 R_INPUT_DIR = OUTPUT_DIR / 'r_input_files'
 
 EEG_MRI_RESULTS = Path('/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/results')
 DF_CLUSTERS_FILE = EEG_MRI_RESULTS / 'dataset_paper' / 'dataframes' / 'df_clusters_complete_kmeans.csv'
-FMRI_CONN_FILE   = _SECTION_DIR.parent / '6_functional_analysis' / 'preprocessing' / 'outputs' / 'df_conn_cohort_norm.csv'
+# Default to the manuscript's primary regime (concat/nogsr_concat); override via
+# FMRI_CONN_FILE (same env var 06_cluster_nbs.py / _sensitivity_utils honour).
+FMRI_CONN_FILE = Path(os.environ.get(
+    'FMRI_CONN_FILE',
+    str(_SECTION_DIR.parent / '6_functional_analysis' / 'concat' / 'preprocessing'
+        / 'outputs' / 'nogsr_concat' / 'df_conn_cohort_norm_nogsr_concat.csv')))
 LEAP_QC_FILE     = EEG_MRI_RESULTS / 'anat_qc' / 'dataframes' / 'subjects_to_remove_LEAP.txt'
 ATLAS_FILE       = (
     '/Users/mfleury/POSTDOC/LIBRAIRY/eeg_mri-pipeline/ressources/atlases/'
@@ -133,17 +139,18 @@ def load_and_prepare_data():
         print(f"Warning: LEAP QC file not found, skipping QC filter: {LEAP_QC_FILE}")
 
     # -- Merge fMRI with cluster labels --
-    # Drop population columns from fMRI to avoid collision before merge
-    df_fmri = df_fmri.drop(columns=['PopulationS1', 'Population1'], errors='ignore')
+    # Diagnosis comes from the curated clinical merge (population_group) carried
+    # in the preprocessing output; only the Cluster labels are taken from the
+    # cluster file (paper k-means).
     df_merged = df_fmri.merge(
-        df_clusters[['ID', 'Cluster', 'PopulationS1']],
+        df_clusters[['ID', 'Cluster']],
         on='ID',
         how='inner',
     )
     print(f"After inner merge: {len(df_merged)} participants")
 
-    # Rename population label TD -> NT for display
-    df_merged['PopulationS1'] = df_merged['PopulationS1'].replace('TD', 'NT')
+    # Curated diagnosis (TD -> NT for display).
+    df_merged['PopulationS1'] = df_merged['population_group'].replace('TD', 'NT')
 
     print(f"Population breakdown: {df_merged['PopulationS1'].value_counts().to_dict()}")
     if 'Cluster' in df_merged.columns:

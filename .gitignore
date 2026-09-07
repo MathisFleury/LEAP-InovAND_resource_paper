@@ -2,9 +2,10 @@
 # Data and outputs (code only is versioned)
 # =========================================================================
 
-# All output / result directories (figures, tables, intermediate artifacts)
+# All output / preprocessing / result directories (figures, tables, intermediate artifacts)
 outputs/
 outputs_*/
+preprocessing/
 Rplots.pdf
 **/Rplots.pdf
 

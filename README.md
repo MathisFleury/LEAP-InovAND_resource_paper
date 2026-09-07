@@ -26,9 +26,6 @@ run against the appropriate data directory.
 9_cluster_eeg_analysis/         # EEG by cluster
 10_clinical_analysis/           # Psychomotor milestones, IQ/SRS/cohort figures, verbal status
 11_age_sex_analysis/            # Diagnosis x age / x sex interaction + age-binned checks
-legacy/                         # Superseded/frozen pipelines, moved out of their section
-                                 #   (local only, not part of this public release)
-_resources/                     # Cross-section figure/table builders + atlas builder
 ```
 
 Each numbered section follows the same convention:
@@ -55,8 +52,7 @@ export LEAP_GENELIST_FILE="/path/to/hgnc_genelist.txt"  # optional
 ```
 
 Cluster-aware sections (3, 5, 7, 9, 10) read cluster labels written by
-`1_clustering/scripts/4_run_clustering.py` (curated) or the local, not
-publicly released, frozen pipeline. Run section 1 first.
+`1_clustering/scripts/4_run_clustering.py`. Run section 1 first.
 
 ## Dependencies
 
@@ -91,29 +87,18 @@ cd 1_clustering && ./run_all.sh
 ```
 
 Runs only the **curated** regime (load cohort → PCA → clustering →
-stability → method comparison → autism-only sensitivity → scatter panels)
-— no frozen/deprecated-data reference anywhere in this tree. Scripts are
-numbered in run order (`1`–`11`); PCA (`2`) runs before clustering (`4`)
-since both read the cohort table `1_load_cohort.py` writes, so the
-feature-justification step doesn't depend on the clustering step's output.
-`7_method_comparison.py` still takes a `curated` arg since it's a
-comparison and needs both regimes' data, but never touches the deprecated
-path directly. Every legacy script lives in the local,
-not publicly released, `legacy/1_clustering/` with its own, fully
-self-contained `run_all.sh`. Three cross-section batch drivers
-(`run_anatomical_with_other_methods.py`,
-`run_downstream_with_curated.py`, `run_genetics_with_other_methods.py`)
-rerun the relevant downstream sections once per clustering method
-(K-means / Ward / GMM).
+stability → method comparison → autism-only sensitivity → scatter panels).
+Scripts are numbered in run order (`1`–`11`); PCA (`2`) runs before
+clustering (`4`) since both read the cohort table `1_load_cohort.py`
+writes, so the feature-justification step doesn't depend on the
+clustering step's output.
 
 ## 2. Genetic analysis
 
 Rare-variant carrier analysis across gene lists (HCNDD, SPARK/SFARI,
 EAGLE, SynGO, ChromEpiTF) and ancestries, on the **gnomAD v4** data used
 in the paper. Population-level only — cluster-level analysis lives in
-section 3 (matches the anatomical/functional section convention). The
-earlier hg19/hg38-v2 pipeline is superseded and lives in
-`legacy/2_genetic_analysis/` (local only, not part of this public release).
+section 3 (matches the anatomical/functional section convention).
 
 - **Carrier annotation, frequencies & odds ratios**: deletions (validated
   CNVs), LoF (LOFTEE HC), pathogenic missenses (AlphaMissense) on
@@ -131,12 +116,7 @@ script-by-script output table.
 ## 3. Cluster-level genetic analysis
 
 Carrier frequencies, odds ratios, and PGS by clinical cluster, on gnomAD v4
-data stratified by the current curated k-means clustering. Every other
-clustering choice explored previously (Ward/frozen k-means, GMM, manual
-cluster-source strategies, NT pool definitions, hg19/hg38 genome builds)
-plus external SPARK LoF replication is superseded and lives in
-`legacy/3_cluster_genetic_analysis/` (local only, not part of this public
-release).
+data stratified by the current curated k-means clustering.
 
 ```bash
 cd 3_cluster_genetic_analysis && ./run_all.sh
@@ -150,9 +130,6 @@ yabplot), on the QC+ComBat+age/sex/eTIV-regressed FreeSurfer table used in
 the paper. Also covers Euler-number QC, LOEUF hg38 correlations/regression,
 clinical x MRI correlations, per-site/age-imbalance robustness checks, and
 the Figure 7 composite (`scripts/run_anatomical_analysis.py`, 21 steps).
-The earlier ComBat-only (no QC/regression) pipeline is superseded and lives
-in `legacy/4_anatomical_analysis/` (local only, not part of this public
-release).
 
 ```bash
 cd 4_anatomical_analysis && ./run_all.sh
@@ -162,20 +139,13 @@ cd 4_anatomical_analysis && ./run_all.sh
 
 Structural MRI contrasts by cluster (t-stats, Cohen's d) plus ggseg and
 subcortical visualisations, including the Figure 6a composite grid, on the
-current curated k-means clustering. The earlier per-cluster pipeline
-(frozen k-means/Ward) is superseded and lives in
-`legacy/5_cluster_anatomical_analysis/` (local only, not part of this
-public release).
+current curated k-means clustering.
 
 ```bash
 cd 5_cluster_anatomical_analysis/scripts
 python3.11 run_cluster_anatomical_analysis.py
 # Optional: restrict NT pool to NT subjects with Cluster == 'C1'
 python3.11 run_cluster_anatomical_analysis.py --nt-c1
-
-# Legacy frozen pipeline (local only, not part of this public release)
-cd ../../legacy/5_cluster_anatomical_analysis/scripts
-python3.11 run_cluster_anatomical_analysis.py
 ```
 
 ## 6. Functional MRI
@@ -218,10 +188,6 @@ network-block permutation, NBS, brain maps), then a sensitivity block
 legacy-vs-revised preprocessing QA comparison. See
 `6_functional_analysis/METHODS_functional_6_vs_7.md` for how this
 section's inference levels relate to section 7's per-cluster analysis.
-
-An earlier, now-superseded attempt at a concatenated-runs pipeline lives in
-`legacy/6-1_functional_analysis_concat/` (local only, not part of this
-public release).
 
 ## 7. Cluster functional MRI
 

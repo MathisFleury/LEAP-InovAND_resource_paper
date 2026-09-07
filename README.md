@@ -7,9 +7,10 @@ This repository is **code only** — no participant data or generated outputs
 are versioned. Each section regenerates its own `outputs/` locally when
 run against the appropriate data directory.
 
-Two data regimes recur throughout: **curated** (default) and **legacy**
-(an earlier pipeline, kept alongside it). Where a section has both,
-`run_all.sh` runs curated by default and the legacy block separately.
+Two data regimes recur throughout: **curated** (the default) and
+**legacy** (an older pipeline, kept to reproduce the published figures).
+Where a section has both, `run_all.sh` runs curated by default and the
+legacy block separately.
 
 ## Repository layout
 

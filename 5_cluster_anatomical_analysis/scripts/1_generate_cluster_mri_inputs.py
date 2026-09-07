@@ -34,6 +34,7 @@ Outputs are written to:
 
 import argparse
 import os
+import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -60,14 +61,16 @@ DF_CLUSTERS_FILE = os.environ.get(
     "/Users/mfleury/POSTDOC/LIBRAIRY/LEAP-InovAND_resource/"
     "1_clustering/outputs/tables/individuals_metrics_with_clusters.csv",
 )
-# Regressed FreeSurfer table. Full-sample fit as of 2026-07 (see pipeline_ndd
-# FIT_REFERENCE_COL note). Override with MRI_NDD_FILE for the `_noeuler` variant.
-MRI_FILE = os.environ.get("MRI_NDD_FILE") or (
-    "/Volumes/Imaging5/EEG_MRI-MF/ALL/results/tabular/anat/"
-    "z_scoring_qc+combat+regression_ndd/output/freesurfer_zscore_qc1_combat_regress.tsv"
-)
 _SCRIPT_DIR = Path(__file__).parent
 _SECTION_DIR = _SCRIPT_DIR.parent  # = 5_cluster_anatomical_analysis/
+_PROJECT_DIR = _SECTION_DIR.parent  # = LEAP-InovAND_resource/
+if str(_PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_DIR))
+# Regressed FreeSurfer table — single source of truth in root config.py (built
+# in-repo by 4_anatomical_analysis/preprocessing/run_pipeline.py). Full-sample
+# fit as of 2026-07 (see pipeline_ndd FIT_REFERENCE_COL note). Override with
+# MRI_NDD_FILE for a sensitivity variant (e.g. `_noeuler`).
+from config import MRI_CURATED as MRI_FILE  # noqa: E402
 # Output base dir name (env-overridable so sensitivity variants land elsewhere).
 # Under tables/, not figures/ -- these are intermediate stats CSVs, not plots.
 OUTPUT_DIR = (_SECTION_DIR / os.environ.get("CLUSTER_OUT_DIR", "outputs")

@@ -17,6 +17,7 @@ Run:    XCPD_VARIANT=nogsr python3.11 anat_qc_crossref.py
 """
 import os
 import re
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -25,10 +26,18 @@ import pandas as pd
 VARIANT = os.environ.get("XCPD_VARIANT", "nogsr")
 HERE = Path(__file__).resolve().parent
 CONN = HERE.parent / "preprocessing" / "outputs" / VARIANT / f"df_conn_cohort_norm_{VARIANT}.csv"
+
+_PROJECT_DIR = HERE.parent.parent.parent  # = LEAP-InovAND_resource/
+if str(_PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_DIR))
+from config import MRI_CURATED  # noqa: E402 -- single source of truth for the anat dir
+
+# qc1234 (all QC levels retained, unlike the qc1-only MRI_CURATED default) --
+# still carries the per-scan QC_seg column needed here. Same dir as MRI_CURATED
+# (built in-repo by 4_anatomical_analysis/preprocessing/run_pipeline.py).
 ANAT_QC = Path(os.environ.get(
     "ANAT_QC_FILE",
-    "/Volumes/Imaging5/EEG_MRI-MF/ALL/results/tabular/anat/"
-    "z_scoring_qc+combat+regression_ndd/output/freesurfer_zscore_qc1234_combat_regress.tsv"))
+    os.path.join(os.path.dirname(MRI_CURATED), "freesurfer_zscore_qc1234_combat_regress.tsv")))
 
 
 def _to_int(x):

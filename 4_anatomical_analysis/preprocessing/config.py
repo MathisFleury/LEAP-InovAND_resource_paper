@@ -11,10 +11,11 @@ Differences vs. the all-cohort `pipeline/` (frozen, not ported):
   • COHORT_KEEP filters to INFOR / INOVAND_* / LEAP_W* only
   • MIN_BATCH_N = 2 (minimum needed for ComBat variance) — keep every site
 
-Output stays at the existing $IMG5 canonical location (unchanged) — root
-config.py's MRI_CURATED already points here and is consumed by sections
-4/5/11, so moving the output in-repo (unlike 6_/8_'s local preprocessing/
-outputs/) would ripple far beyond this port. Only the CODE moved in-repo.
+Output is written to this pipeline's own outputs/ dir (in-repo, gitignored),
+matching 6_functional_analysis/ and 8_eeg_analysis/'s preprocessing/outputs/
+pattern. Root config.py's MRI_CURATED points here; downstream consumers in
+sections 5/6/11 that used to hardcode the old external $IMG5 path now resolve
+it via root config.py instead.
 """
 import os
 from pathlib import Path
@@ -63,10 +64,7 @@ def load_clinical(**kwargs):
     )
 
 
-OUT_DIR = (
-    IMG5_ROOT / "ALL" / "results" / "tabular" / "anat" /
-    "z_scoring_qc+combat+regression_ndd" / "output"
-)
+OUT_DIR = Path(__file__).parent / "outputs"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ----------------------------------------------------------- cohort filter

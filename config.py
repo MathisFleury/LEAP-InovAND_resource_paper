@@ -137,9 +137,11 @@ PGS_EUR_V4 = os.path.join(_GENETICS_IMG5, "InovAND-LEAP.pgs.europeans.v4.tsv")
 # is fit on the FULL sample (not NT) — see the pipeline_ndd FIT_REFERENCE_COL note
 # and 5_cluster_anatomical_analysis report §2.5. Override with MRI_NDD_FILE to
 # point analyses at a variant (e.g. the `_noeuler` sensitivity table).
+# Built in-repo by 4_anatomical_analysis/preprocessing/run_pipeline.py (2026-09
+# port) into its own outputs/ dir, matching 6_functional_analysis/ and
+# 8_eeg_analysis/'s preprocessing/outputs/ pattern.
 MRI_CURATED = os.environ.get("MRI_NDD_FILE") or os.path.join(
-    IMG5, "ALL", "results", "tabular", "anat",
-    "z_scoring_qc+combat+regression_ndd", "output",
+    PROJECT_DIR, "4_anatomical_analysis", "preprocessing", "outputs",
     "freesurfer_zscore_qc1_combat_regress.tsv")
 MRI_FILE = MRI_CURATED  # legacy alias (curated-pipeline scripts import MRI_FILE)
 

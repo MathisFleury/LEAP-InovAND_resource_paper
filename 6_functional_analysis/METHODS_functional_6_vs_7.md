@@ -2,7 +2,7 @@
 
 > **Note (2026-09):** this note was written against the `non_concat/` (legacy
 > XCP-D 0.8) connectivity table below, which was the shared input at the time.
-> The manuscript-reported whole-group and per-cluster analyses now read
+> The primary whole-group and per-cluster analyses now read
 > `concat/preprocessing/outputs/nogsr_concat/df_conn_cohort_norm_nogsr_concat.csv`
 > instead (see `README.md`) — the *inference logic* described here (edge /
 > network-block / NBS, whole-group vs per-cluster) still applies unchanged,

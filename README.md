@@ -7,12 +7,9 @@ This repository is **code only** — no participant data or generated outputs
 are versioned. Each section regenerates its own `outputs/` locally when
 run against the appropriate data directory.
 
-Two data regimes recur throughout: **curated** (current, priority regime —
-what new work and most `run_all.sh` defaults target) and **frozen /
-paper-reproduction** (the original submission's data snapshot, kept only to
-reproduce the published figures, not the basis for new work). Where a
-section keeps both, `run_all.sh` runs curated by default and the frozen
-block separately, clearly labelled.
+Two data regimes recur throughout: **curated** (default) and **legacy**
+(an earlier pipeline, kept alongside it). Where a section has both,
+`run_all.sh` runs curated by default and the legacy block separately.
 
 ## Repository layout
 
@@ -87,12 +84,11 @@ Clinical clustering based on IQ and SRS-2 dimensions.
 - **Final clustering**: k=3 on standardised IQ × SRS via **K-means**
   (`n_init=25`, `random_state=42`). The original paper used hierarchical
   Ward; the present resource adopts K-means as the primary method based
-  on a reviewer-requested comparative analysis (see
-  `7_method_comparison.py`) — k-means is more stable under bootstrap and
-  produces better internal indices. Ward and GMM are retained as
-  sensitivity analyses.
-- **Autism-only clustering** (Reviewer #4.6) and a **reval**
-  stability-based k-selection check are also included.
+  on a comparative analysis (see `7_method_comparison.py`) — k-means is
+  more stable under bootstrap and produces better internal indices. Ward
+  and GMM are retained as sensitivity analyses.
+- **Autism-only clustering** and a **reval** stability-based k-selection
+  check are also included.
 
 ```bash
 cd 1_clustering && ./run_all.sh
@@ -106,7 +102,7 @@ since both read the cohort table `1_load_cohort.py` writes, so the
 feature-justification step doesn't depend on the clustering step's output.
 `7_method_comparison.py` still takes a `curated` arg since it's a
 comparison and needs both regimes' data, but never touches the deprecated
-path directly. Every frozen/paper-reproduction script lives in the local,
+path directly. Every legacy script lives in the local,
 not publicly released, `legacy/1_clustering/` with its own, fully
 self-contained `run_all.sh`. Three cross-section batch drivers
 (`run_anatomical_with_other_methods.py`,
@@ -140,7 +136,7 @@ script-by-script output table.
 
 Carrier frequencies, odds ratios, and PGS by clinical cluster, on gnomAD v4
 data stratified by the current curated k-means clustering. Every other
-clustering choice explored during review (Ward/frozen k-means, GMM, manual
+clustering choice explored previously (Ward/frozen k-means, GMM, manual
 cluster-source strategies, NT pool definitions, hg19/hg38 genome builds)
 plus external SPARK LoF replication is superseded and lives in
 `legacy/3_cluster_genetic_analysis/` (local only, not part of this public
@@ -193,10 +189,9 @@ parallel analyses under one folder, differing in preprocessing (XCP-D
 version) and in whether runs are concatenated per subject before computing
 connectivity — see `6_functional_analysis/README.md`.
 
-**`6_functional_analysis/concat/`** (current, priority regime) — XCP-D
-v0.11. The manuscript's primary regime is `nogsr_concat` (run-concatenated,
-no global-signal-regression, >6 min; n=393 autism / 327 NT) — this is what
-`11_age_sex_analysis` and the reviewer-response numbers use.
+**`6_functional_analysis/concat/`** (current) — XCP-D v0.11. The primary
+variant is `nogsr_concat` (run-concatenated, no global-signal-regression,
+>6 min; n=393 autism / 327 NT) — used directly by `11_age_sex_analysis`.
 
 ```bash
 cd 6_functional_analysis/concat && ./run_all.sh
@@ -283,7 +278,7 @@ cd 10_clinical_analysis && ./run_all.sh
 
 Diagnosis x age and diagnosis x sex interaction models (anatomical +
 functional), age-binned sanity checks, and age-composition sensitivity
-analyses ("The Effects of Age and Sex" manuscript section). Depends on
+analyses (corresponds to "The Effects of Age and Sex"). Depends on
 `4_anatomical_analysis/` directly (imports its config and script 01).
 
 ```bash

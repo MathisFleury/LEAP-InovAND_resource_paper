@@ -8,7 +8,7 @@ on the **gnomAD v4** genetics data used in the paper, stratified by the
 section holds the cluster-level counterpart of `2_genetic_analysis`'s
 population-level analysis).
 
-Every other clustering-method variant used during the revision cycle
+Every other clustering-method variant explored previously
 (legacy/frozen k-means-or-Ward, GMM, manual cutoffs, SPARK-LOF, and
 hg19/hg38-v2 genetics) is superseded and lives in
 `../legacy/3_cluster_genetic_analysis/` (local only, not part of this public
@@ -44,9 +44,9 @@ subfolders.
 
 The legacy tree repeats the same carrier-frequency/OR/PGS analysis across
 several ways of defining "which cluster does each person belong to", from
-when the project's clustering methodology was still being finalised during
-review (see root `1_clustering/`). None of these names appear in the
-manuscript — they're this repo's internal labels for where the cluster
+when the project's clustering methodology was still being finalised (see
+root `1_clustering/`). None of these names are used in the published
+figures/tables — they're this repo's internal labels for where the cluster
 column came from:
 
 | Label | Cluster column | Source file |

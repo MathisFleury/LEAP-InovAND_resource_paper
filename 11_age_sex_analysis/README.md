@@ -2,7 +2,7 @@
 
 Diagnosis x age and diagnosis x sex interaction models (anatomical +
 functional), age-binned sanity checks, and age-composition sensitivity
-analyses — the manuscript's "The Effects of Age and Sex" section.
+analyses — corresponds to "The Effects of Age and Sex".
 
 See `age_sex_writeup.md` for the full Methods/Results write-up. Run order
 (`run_all.sh`) follows the scripts' own dependency chain: `01` is a hard

@@ -4,9 +4,9 @@ Structural MRI contrasts by clinical cluster (t-stats, Cohen's d), ggseg
 and subcortical visualisations, the Figure 6a composite grid, and
 publication gt tables — on the current curated k-means clustering.
 
-This tree runs the **current, priority regime** — curated k-means only.
-Every other clustering method (Ward, GMM, NT-restricted, autism-only) run
-during review, plus the earlier frozen per-cluster pipeline, are superseded
+This tree runs the **current** pipeline — curated k-means only.
+Every other clustering method (Ward, GMM, NT-restricted, autism-only),
+plus the earlier frozen per-cluster pipeline, are superseded
 and live in `../legacy/5_cluster_anatomical_analysis/` (local only, not
 part of this public release) with their own, fully self-contained
 orchestrator.

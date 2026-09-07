@@ -1,4 +1,4 @@
-# 6. Functional MRI — concat (current, priority regime)
+# 6. Functional MRI — concat (current)
 
 Functional connectivity, autism vs NT, on XCP-D v0.11. Self-contained — no
 dependency on `../non_concat/` (the legacy XCP-D 0.8 pipeline, kept for the
@@ -7,9 +7,9 @@ non-concatenated-runs analysis; see `../README.md`).
 ## Primary regime
 
 **`nogsr_concat`**: no global-signal-regression, runs concatenated per
-subject (≥6 min usable data). This is what the manuscript reports (n=393
-autism / 327 NT — the "reported whole-cohort N") and what
-`11_age_sex_analysis` imports directly.
+subject (≥6 min usable data). This is the primary analysis (n=393
+autism / 327 NT — the whole-cohort N) and what `11_age_sex_analysis`
+imports directly.
 
 ```bash
 cd 6_functional_analysis/concat && ./run_all.sh
@@ -54,10 +54,10 @@ e.g. `gsr_concat_INOVAND` = 36P/6mm GSR, run-concatenated, INOVAND only.
   (run once, 2026-07-08, not rebuilt since) plus a handful of earlier
   one-off nogsr-family checks (2026-06-29/30). **Only `gsr_concat` is
   individually reported**: its brain-map output
-  (`outputs/tables/nbs_wholegroup_gsr_concat/`) feeds the manuscript's GSR
-  sensitivity supplementary figure via `_resources/build_gsr_sensitivity_figure.R`.
-  Everything else in `sensitivity/` was explored during revision and isn't
-  cited in the manuscript. Note `gsr_concat` was last rebuilt 2026-07-16,
+  (`outputs/tables/nbs_wholegroup_gsr_concat/`) feeds the GSR sensitivity
+  supplementary figure via `_resources/build_gsr_sensitivity_figure.R`.
+  Everything else in `sensitivity/` was exploratory and isn't otherwise
+  reported. Note `gsr_concat` was last rebuilt 2026-07-16,
   before `nogsr_concat`'s latest (2026-09-03) rebuild — worth re-running if
   the two need to be compared on identical upstream data.
 

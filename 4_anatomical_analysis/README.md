@@ -4,7 +4,7 @@ Structural MRI (FreeSurfer-derived) for autism vs NT, IQ/SRS correlates,
 LOEUF carrier effects, and brain visualisations, on the QC+ComBat+age/sex/
 eTIV-regressed FreeSurfer table used in the paper.
 
-This tree runs the **current, priority regime**. The earlier ComBat-only
+This tree runs the **current** pipeline. The earlier ComBat-only
 (no QC/regression) pipeline is superseded and lives in
 `../legacy/4_anatomical_analysis/` (local only, not part of this public
 release) with its own, fully self-contained `run_all.sh`.
@@ -50,7 +50,7 @@ follows the analysis narrative).
 # From 4_anatomical_analysis/
 ./run_all.sh
 
-# Legacy paper-reproduction pipeline (local only, not part of this public release)
+# Legacy pipeline (local only, not part of this public release)
 cd ../legacy/4_anatomical_analysis && ./run_all.sh
 ```
 

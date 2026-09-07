@@ -8,12 +8,12 @@ Clinical clustering on IQ and SRS-2 dimensions for the LEAP-InovAND Nature Neuro
 2. **PCA**: Exclude missing data and relatives; standardize features. First two components explain >75% variance; IQ and SRS contribute most.
 3. **Feature selection**: IQ and SRS maximize sample size relative to the broader Vineland-inclusive set.
 4. **Cluster validation** (k=2–10): NbClust (26 indices) plus AIC/BIC/ICL, Silhouette, VRS, Davies-Bouldin, Pseudo-F, Gap statistic — all favor k=3.
-5. **Final clustering**: k=3 on standardised IQ × SRS via **K-means** (current priority regime — see root README for the K-means-vs-Ward rationale). Ward and GMM are retained as sensitivity analyses.
+5. **Final clustering**: k=3 on standardised IQ × SRS via **K-means** (current default — see root README for the K-means-vs-Ward rationale). Ward and GMM are retained as sensitivity analyses.
 
 ## Scripts
 
 This tree is **curated-only** — no deprecated-data reference anywhere in it.
-Every frozen/paper-reproduction script lives in `../legacy/1_clustering/`
+Every legacy script lives in `../legacy/1_clustering/`
 (local only, not part of this public release).
 
 Numbered in run order. PCA (`2`) runs before clustering (`4`) — both read the
@@ -29,11 +29,11 @@ the clustering step's output.
 | `5_cluster_stability.py` | Bootstrap/subsampling/noise stability checks, all 3 methods. Frozen run: `legacy/1_clustering/05_cluster_stability_frozen.py` (thin invoker, same reasoning as `4`). |
 | `6_stability_figure_merged.py` | Merges the 3 per-method stability figures into one (defaults to curated). |
 | `7_method_comparison.py` / `8_method_comparison_table.R` | K-means vs Ward vs GMM comparative metrics (internal indices, bootstrap ARI). `[curated]` arg — kept shared (not split) since it's a comparison between both regimes' data, not a deprecated-path reference of its own; its frozen-mode invocation lives in `legacy/1_clustering/run_all.sh` since it needs frozen `4`'s output. |
-| `9_autism_only_clustering.py` / `10_autism_only_table.R` | Autism-only clustering sensitivity (Reviewer #4.6): drops non-autistic subjects entirely and re-clusters (A1/A2/A3 labels), distinct from `4_run_clustering.py --autism-only`. |
-| `11_cluster_scatter_panels.py` | Cluster scatter panels (IQ × SRS, 4 colourings); defaults to curated, `frozen` arg for the paper-reproduction table. |
+| `9_autism_only_clustering.py` / `10_autism_only_table.R` | Autism-only clustering sensitivity: drops non-autistic subjects entirely and re-clusters (A1/A2/A3 labels), distinct from `4_run_clustering.py --autism-only`. |
+| `11_cluster_scatter_panels.py` | Cluster scatter panels (IQ × SRS, 4 colourings); defaults to curated, `frozen` arg for the legacy table. |
 | `run_anatomical_with_other_methods.py`, `run_downstream_with_curated.py`, `run_genetics_with_other_methods.py` | Cross-section batch drivers — rerun the relevant downstream sections once per clustering method (K-means/Ward/GMM) on curated data. |
 
-`../legacy/1_clustering/` holds the entire frozen/paper-reproduction
+`../legacy/1_clustering/` holds the entire legacy
 pipeline, fully self-contained (own `run_all.sh`, starting with
 `04_run_clustering_frozen.py`): the frozen `4`/`2`/`5` counterparts,
 plus every genuinely frozen-only leaf script with no downstream dependents
@@ -52,10 +52,10 @@ subtree, since it's a different clustering run, not a different regime.
 ## Run
 
 ```bash
-# From 1_clustering/ — curated only (current, priority regime)
+# From 1_clustering/ — curated only (current)
 ./run_all.sh
 
-# From legacy/1_clustering/ — the entire frozen/paper-reproduction
+# From legacy/1_clustering/ — the entire legacy
 # pipeline, fully self-contained (local only, not part of this release)
 cd ../legacy/1_clustering && ./run_all.sh
 ```

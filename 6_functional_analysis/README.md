@@ -8,7 +8,7 @@ concatenated per subject before computing connectivity:
 |---|---|---|
 | XCP-D version | v0.11 | v0.8 (legacy) |
 | Runs | concatenated per subject (≥6 min usable data) | single best run per subject |
-| Status | **current, priority regime — this is what the manuscript reports** | kept as a secondary/historical analysis |
+| Status | **current (primary)** | kept as a secondary/historical analysis |
 | Self-contained | yes, no dependency on `non_concat/` | yes |
 
 See `concat/README.md` for the primary pipeline (also the `nogsr_concat`

@@ -1,8 +1,7 @@
 # 7. Cluster Functional MRI Analysis
 
 Functional connectivity, autism *clusters* (C1/C2/C3) vs pooled NT — the
-per-cluster analogue of `6_functional_analysis`'s whole-group analysis (see
-its `METHODS_functional_6_vs_7.md` for how the two relate).
+per-cluster analogue of `6_functional_analysis`'s whole-group analysis.
 
 ## Primary regime
 
@@ -38,7 +37,3 @@ honour), and `run_all.sh` pins it explicitly for a real run.
   Not to be confused with `outputs/figures/sensitivity/`, the 01b/01c
   6-minute-cutoff / covariate-adjusted checks' own output folder — same
   word, two unrelated sensitivity analyses at different folder depths.
-
-An earlier, frozen paper-vintage run lives in
-`../legacy/7_cluster_functional_analysis/outputs_paper/` (local only, not
-part of this public release).

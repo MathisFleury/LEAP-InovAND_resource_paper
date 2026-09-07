@@ -14,13 +14,6 @@ concatenated per subject before computing connectivity:
 See `concat/README.md` for the primary pipeline (also the `nogsr_concat`
 sensitivity-variant glossary — GSR, mixed run-selection, regress-order,
 per-cohort, anat-QC — via `concat/run_gsr_all_modes.sh`).
-`METHODS_functional_6_vs_7.md` explains the edge / network-block ("6-block")
-/ NBS inference levels shared by this section and the per-cluster analysis
-in `../7_cluster_functional_analysis/`.
-
-An earlier, now-superseded attempt at a concatenated-runs pipeline
-(`6-1_functional_analysis_concat`) lives in `../legacy/` (local only, not
-part of this public release).
 
 ## Downstream consumers
 

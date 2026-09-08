@@ -1,7 +1,8 @@
 # LEAP-InovAND Resource
 
 Analysis code for **LEAP-InovAND: a multiscale resource to explore genetics,
-brain imaging and clinical data in autism**.
+brain imaging and clinical data in autism**
+([doi.org/10.1101/2025.11.24.25340858](https://doi.org/10.1101/2025.11.24.25340858)).
 
 This repository is **code only** — no participant data or generated outputs
 are versioned. Each section regenerates its own `outputs/` locally when

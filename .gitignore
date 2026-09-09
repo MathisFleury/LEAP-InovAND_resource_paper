@@ -27,6 +27,7 @@ _resources/*.docx
 _resources/*.md
 _resources/*.html
 _resources/redline_figs/
+_resources/cohort_split_tmp/
 
 # =========================================================================
 # Data file types (anywhere in the tree)

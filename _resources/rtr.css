@@ -1,0 +1,20 @@
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+         font-size: 10.5pt; line-height: 1.45; color: #111; max-width: none; margin: 0; }
+  h1 { font-size: 18pt; border-bottom: 2px solid #333; padding-bottom: 4px; }
+  h2 { font-size: 13pt; margin-top: 22px; color: #1a3a5c;
+       border-bottom: 1px solid #ccc; padding-bottom: 2px; }
+  h3 { font-size: 11.5pt; margin-top: 18px; color: #1a3a5c; page-break-after: avoid; }
+  /* reviewer verbatim comments */
+  blockquote { margin: 8px 0 10px 0; padding: 6px 12px; background: #f4f6f8;
+               border-left: 3px solid #7a8b47; color: #333; font-style: normal; }
+  table { border-collapse: collapse; margin: 10px 0; font-size: 9.5pt;
+          page-break-inside: avoid; }
+  th, td { border: 1px solid #bbb; padding: 3px 7px; text-align: left; }
+  th { background: #eceff1; }
+  code { background: #f2f2f2; padding: 1px 3px; font-size: 9pt; }
+  #TOC { page-break-after: always; font-size: 10pt; }
+  #TOC ul { list-style: none; padding-left: 14px; }
+  em { color: #222; }
+</style>

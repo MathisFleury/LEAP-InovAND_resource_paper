@@ -13,8 +13,7 @@ analysis script — this script only lays them out):
        <- 6_functional_analysis/concat/scripts/13_sequence_combat_svm.py (by-machine)
   d. ComBat AUC-ROC (structural MRI): same check on the anatomical pipeline
      (structural companion to c)
-       <- orphaned output at 4_anatomical_analysis/outputs/qc_sequence/
-          anat_sequence_svm_auc_bymachine.pdf (generating script not in repo)
+       <- 4_anatomical_analysis/scripts/22_anat_sequence_combat_svm.py
 
 Re-run the source scripts first if the underlying data changed; this script
 just assembles their current PDF outputs.
@@ -37,7 +36,9 @@ MARGIN = 0.7 * CM
 LABEL_BAND = 0.7 * CM
 GAP_COL = 0.5 * CM
 GAP_ROW = 0.6 * CM
-CONTENT_W = 18 * CM
+PAGE_W = 18 * CM              # journal max figure width -- TOTAL page, not just content
+CONTENT_W = PAGE_W - 2 * MARGIN
+LABEL_FONTSIZE = 18           # was 16 (too small), 20 (too big) -- 18 as a middle ground
 
 
 def main():
@@ -58,12 +59,11 @@ def main():
             d.close()
         row_heights.append((col_w, heights))
 
-    page_w = CONTENT_W + 2 * MARGIN
     page_h = (MARGIN + sum(LABEL_BAND + max(hs) for _, hs in row_heights)
               + GAP_ROW * (len(ROWS) - 1) + MARGIN)
 
     doc = fitz.open()
-    page = doc.new_page(width=page_w, height=page_h)
+    page = doc.new_page(width=PAGE_W, height=page_h)
 
     y = MARGIN
     for row, (col_w, heights) in zip(ROWS, row_heights):
@@ -71,7 +71,7 @@ def main():
         x = MARGIN
         for (letter, path), h in zip(row, heights):
             page.insert_text((x, y + LABEL_BAND - 4), letter,
-                              fontsize=16, fontname="Helvetica-Bold")
+                              fontsize=LABEL_FONTSIZE, fontname="Helvetica-Bold")
             src = fitz.open(path)
             y_panel = y + LABEL_BAND + (row_h - h) / 2  # vertically centre in the row band
             page.show_pdf_page(fitz.Rect(x, y_panel, x + col_w, y_panel + h), src, 0)
@@ -80,7 +80,7 @@ def main():
         y += LABEL_BAND + row_h + GAP_ROW
 
     doc.save(OUT)
-    print(f"Saved: {OUT}  ({page_w / CM:.1f} x {page_h / CM:.1f} cm)")
+    print(f"Saved: {OUT}  ({PAGE_W / CM:.1f} x {page_h / CM:.1f} cm)")
 
 
 if __name__ == "__main__":

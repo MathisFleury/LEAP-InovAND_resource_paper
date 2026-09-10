@@ -124,6 +124,11 @@ def make_violin():
     cur["_jk"] = cur.apply(_m01._canonical_join_key_clusters, axis=1)
     pop = dict(zip(cur["_jk"], cur["population"]))
     mri["pop"] = mri["_jk"].map(pop)
+    # The curated cluster file is participant-only (excludes relatives) --
+    # fall back to the MRI table's own population_group for anyone the join
+    # misses, so Relatives (real Euler data, just no cluster-file entry)
+    # aren't silently dropped by the dropna below.
+    mri["pop"] = mri["pop"].fillna(mri["population_group"])
     mri = mri.dropna(subset=["pop", "mean_euler"])
     mri["pop"] = mri["pop"].replace(POP_REMAP)
     order = [g for g in GROUPS if (mri["pop"] == g).any()]
@@ -142,14 +147,16 @@ def make_violin():
             axis.plot([q1, q3], [i, i], color="#7a0010", lw=4, zorder=4, solid_capstyle="round")
             axis.scatter([med], [i], s=90, color="#7a0010", zorder=5)
     draw(ax, order, lambda g: mri.loc[mri["pop"] == g, "mean_euler"].values)
-    ax.set_yticks(range(len(order))); ax.set_yticklabels(order); ax.invert_yaxis()
+    ax.set_yticks(range(len(order))); ax.set_yticklabels(order, fontsize=16); ax.invert_yaxis()
+    ax.tick_params(axis="both", labelsize=16)
     for s in ("top", "right"): ax.spines[s].set_visible(False)
     draw(axall, ["All"], lambda g: mri["mean_euler"].values)
-    axall.set_yticks([0]); axall.set_yticklabels(["All"])
+    axall.set_yticks([0]); axall.set_yticklabels(["All"], fontsize=16)
+    axall.tick_params(axis="both", labelsize=16)
     for s in ("top", "right"): axall.spines[s].set_visible(False)
     lo = np.percentile(mri["mean_euler"], 1)
     ax.set_xlim(lo, 5); axall.set_xlim(lo, 5)
-    axall.set_xlabel("mean Euler number (higher = better reconstruction)")
+    axall.set_xlabel("mean Euler number (higher = better reconstruction)", fontsize=18)
     fig.tight_layout()
     fig.savefig(OUT / "euler_violin.pdf", bbox_inches="tight")
     fig.savefig(OUT / "euler_violin.png", dpi=200, bbox_inches="tight")

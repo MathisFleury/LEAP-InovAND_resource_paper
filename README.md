@@ -3,7 +3,6 @@
 
 Analysis code for the paper **LEAP-InovAND: a multiscale resource to explore genetics,
 brain imaging and clinical data in autism**
-([doi.org/10.1101/2025.11.24.25340858](https://doi.org/10.1101/2025.11.24.25340858)).
 
 [![Paper](https://img.shields.io/badge/Paper-Arxiv-red)](https://doi.org/10.1101/2025.11.24.25340858)
 
